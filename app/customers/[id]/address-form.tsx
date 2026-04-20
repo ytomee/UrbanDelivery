@@ -51,86 +51,98 @@ export default function AddressForm({
     });
   }
 
-  const inputClass =
-    "w-full h-10 rounded-md border border-border bg-white px-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary";
-  const labelClass = "block text-sm font-medium mb-1.5";
-  const errorClass = "text-xs text-danger mt-1";
-
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="sm:col-span-2">
-          <label className={labelClass}>Rua *</label>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Rua <span style={{ color: 'var(--danger)' }}>*</span>
+          </label>
           <input
-            className={inputClass}
+            className="input-field"
             value={street}
             onChange={(e) => setStreet(e.target.value)}
             placeholder="Rua e número"
           />
-          {errors.street && <p className={errorClass}>{errors.street}</p>}
+          {errors.street && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{errors.street}</p>
+          )}
         </div>
 
         <div>
-          <label className={labelClass}>Cidade *</label>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Cidade <span style={{ color: 'var(--danger)' }}>*</span>
+          </label>
           <input
-            className={inputClass}
+            className="input-field"
             value={city}
             onChange={(e) => setCity(e.target.value)}
             placeholder="Lisboa"
           />
-          {errors.city && <p className={errorClass}>{errors.city}</p>}
+          {errors.city && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{errors.city}</p>
+          )}
         </div>
 
         <div>
-          <label className={labelClass}>Código Postal *</label>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Código Postal <span style={{ color: 'var(--danger)' }}>*</span>
+          </label>
           <input
-            className={inputClass}
+            className="input-field"
             value={postalCode}
             onChange={(e) => setPostalCode(e.target.value)}
             placeholder="1234-567"
             maxLength={8}
           />
           {errors.postalCode && (
-            <p className={errorClass}>{errors.postalCode}</p>
+            <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{errors.postalCode}</p>
           )}
         </div>
 
         <div>
-          <label className={labelClass}>Zona *</label>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Zona <span style={{ color: 'var(--danger)' }}>*</span>
+          </label>
           <input
-            className={inputClass}
+            className="input-field"
             value={zone}
             onChange={(e) => setZone(e.target.value)}
             placeholder="Centro"
           />
-          {errors.zone && <p className={errorClass}>{errors.zone}</p>}
+          {errors.zone && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{errors.zone}</p>
+          )}
         </div>
 
-        <div className="flex items-center gap-2 self-end h-10">
+        <div className="flex items-center gap-2.5 self-end h-[42px]">
           <input
             type="checkbox"
             id="isDefault"
             checked={isDefault}
             onChange={(e) => setIsDefault(e.target.checked)}
-            className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
           />
-          <label htmlFor="isDefault" className="text-sm">
+          <label
+            htmlFor="isDefault"
+            className="text-sm cursor-pointer select-none"
+            style={{ color: 'var(--foreground-secondary)' }}
+          >
             Morada predefinida
           </label>
         </div>
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <button
-          type="submit"
-          className="h-10 rounded-md bg-primary px-5 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
-        >
+      <div className="flex gap-3 pt-3">
+        <button type="submit" className="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.5 4L5.5 10L2.5 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           {initial ? "Atualizar" : "Adicionar"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="h-10 rounded-md border border-border px-5 text-sm font-medium text-muted hover:text-foreground transition-colors"
+          className="btn btn-secondary"
         >
           Cancelar
         </button>

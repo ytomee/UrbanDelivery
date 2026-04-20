@@ -45,41 +45,46 @@ export default function CustomerForm({ onSaved, onCancel }: CustomerFormProps) {
     onSaved();
   }
 
-  const inputClass =
-    "w-full h-10 rounded-md border border-border bg-white px-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary";
-  const labelClass = "block text-sm font-medium mb-1.5";
-  const errorClass = "text-xs text-danger mt-1";
-
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <label className={labelClass}>Nome *</label>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Nome <span style={{ color: 'var(--danger)' }}>*</span>
+          </label>
           <input
-            className={inputClass}
+            className="input-field"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Nome completo"
           />
-          {errors.name && <p className={errorClass}>{errors.name}</p>}
+          {errors.name && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{errors.name}</p>
+          )}
         </div>
 
         <div>
-          <label className={labelClass}>NIF *</label>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            NIF <span style={{ color: 'var(--danger)' }}>*</span>
+          </label>
           <input
-            className={inputClass}
+            className="input-field"
             value={nif}
             onChange={(e) => setNif(e.target.value)}
             placeholder="123456789"
             maxLength={9}
           />
-          {errors.nif && <p className={errorClass}>{errors.nif}</p>}
+          {errors.nif && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{errors.nif}</p>
+          )}
         </div>
 
         <div>
-          <label className={labelClass}>Tipo *</label>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Tipo <span style={{ color: 'var(--danger)' }}>*</span>
+          </label>
           <select
-            className={inputClass}
+            className="input-field"
             value={type}
             onChange={(e) => setType(e.target.value as CustomerType)}
           >
@@ -89,40 +94,48 @@ export default function CustomerForm({ onSaved, onCancel }: CustomerFormProps) {
         </div>
 
         <div>
-          <label className={labelClass}>Email *</label>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Email <span style={{ color: 'var(--danger)' }}>*</span>
+          </label>
           <input
-            className={inputClass}
+            className="input-field"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="email@exemplo.pt"
           />
-          {errors.email && <p className={errorClass}>{errors.email}</p>}
+          {errors.email && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{errors.email}</p>
+          )}
         </div>
 
         <div>
-          <label className={labelClass}>Telefone *</label>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Telefone <span style={{ color: 'var(--danger)' }}>*</span>
+          </label>
           <input
-            className={inputClass}
+            className="input-field"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="912345678"
           />
-          {errors.phone && <p className={errorClass}>{errors.phone}</p>}
+          {errors.phone && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{errors.phone}</p>
+          )}
         </div>
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <button
-          type="submit"
-          className="h-10 rounded-md bg-primary px-5 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
-        >
+      <div className="flex gap-3 pt-3">
+        <button type="submit" className="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.5 4L5.5 10L2.5 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           Guardar
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="h-10 rounded-md border border-border px-5 text-sm font-medium text-muted hover:text-foreground transition-colors"
+          className="btn btn-secondary"
         >
           Cancelar
         </button>

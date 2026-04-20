@@ -74,9 +74,21 @@ export default function CustomerDetailPage({
 
   if (!customer) {
     return (
-      <div className="text-center py-16 text-muted">
-        <p className="text-lg">Cliente não encontrado</p>
-        <Link href="/customers" className="text-primary text-sm mt-2 inline-block">
+      <div className="glass-card empty-state animate-fade-in">
+        <div className="empty-state-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <p className="text-base font-medium" style={{ color: 'var(--foreground-secondary)' }}>
+          Cliente não encontrado
+        </p>
+        <Link
+          href="/customers"
+          className="btn btn-primary mt-4"
+          style={{ fontSize: '0.8125rem' }}
+        >
           Voltar à lista
         </Link>
       </div>
@@ -84,56 +96,114 @@ export default function CustomerDetailPage({
   }
 
   return (
-    <div>
-      <Link
-        href="/customers"
-        className="text-sm text-muted hover:text-foreground transition-colors"
-      >
-        &larr; Voltar à lista
+    <div className="animate-fade-in">
+      {/* Back link */}
+      <Link href="/customers" className="back-link">
+        <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8.5 3L4.5 7L8.5 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        Voltar à lista
       </Link>
 
-      <div className="mt-4 mb-8">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {customer.name}
-          </h1>
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-              customer.type === "empresa"
-                ? "bg-blue-50 text-blue-700"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {customer.type === "empresa" ? "Empresa" : "Particular"}
-          </span>
+      {/* Customer info header */}
+      <div className="glass-card p-6 mt-4 mb-8">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div
+              className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+              style={{
+                background: customer.type === "empresa"
+                  ? 'rgba(13, 59, 102, 0.09)'
+                  : 'var(--chiffon)',
+              }}
+            >
+              {customer.type === "empresa" ? (
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="5" width="16" height="14" rx="1.5" stroke="var(--yale)" strokeWidth="1.3"/>
+                  <path d="M8 5V3.5A1.5 1.5 0 019.5 2h3A1.5 1.5 0 0114 3.5V5" stroke="var(--yale)" strokeWidth="1.3"/>
+                  <path d="M3 10h16" stroke="var(--yale)" strokeWidth="1.3"/>
+                </svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="11" cy="8" r="3.5" stroke="var(--yale)" strokeWidth="1.3"/>
+                  <path d="M4.5 19c0-3.5 3-6.5 6.5-6.5s6.5 3 6.5 6.5" stroke="var(--yale)" strokeWidth="1.3" strokeLinecap="round"/>
+                </svg>
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-3">
+                <h1
+                  className="text-xl font-bold tracking-tight"
+                  style={{ color: 'var(--foreground)', letterSpacing: '-0.01em' }}
+                >
+                  {customer.name}
+                </h1>
+                <span className={`badge ${customer.type === "empresa" ? "badge-empresa" : "badge-particular"}`}>
+                  {customer.type === "empresa" ? "Empresa" : "Particular"}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 text-sm" style={{ color: 'var(--foreground-secondary)' }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1.5" y="2" width="10" height="9" rx="1" stroke="currentColor" strokeWidth="1.1"/>
+                    <path d="M1.5 5h10" stroke="currentColor" strokeWidth="1.1"/>
+                  </svg>
+                  {customer.nif}
+                </span>
+                <span style={{ color: 'var(--border-strong)', fontSize: '0.75rem' }}>·</span>
+                <span className="inline-flex items-center gap-1.5 text-sm" style={{ color: 'var(--foreground-secondary)' }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1.5" y="2.5" width="10" height="8" rx="1" stroke="currentColor" strokeWidth="1.1"/>
+                    <path d="M1.5 2.5L6.5 7L11.5 2.5" stroke="currentColor" strokeWidth="1.1"/>
+                  </svg>
+                  {customer.email}
+                </span>
+                <span style={{ color: 'var(--border-strong)', fontSize: '0.75rem' }}>·</span>
+                <span className="inline-flex items-center gap-1.5 text-sm" style={{ color: 'var(--foreground-secondary)' }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="3" y="1.5" width="7" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.1"/>
+                    <path d="M5.5 9.5h2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+                  </svg>
+                  {customer.phone}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-        <p className="text-muted text-sm mt-1">
-          NIF {customer.nif} &middot; {customer.email} &middot; {customer.phone}
-        </p>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-medium">Moradas de Entrega</h2>
+      {/* Addresses section */}
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>
+            Moradas de Entrega
+          </h2>
+          <div className="accent-line" style={{ marginTop: 6 }} />
+        </div>
         {!showForm && !editingAddress && (
           <button
             onClick={() => setShowForm(true)}
-            className="h-9 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
+            className="btn btn-primary"
+            style={{ height: 36, fontSize: '0.8125rem' }}
           >
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
             Nova Morada
           </button>
         )}
       </div>
 
       {showForm && (
-        <div className="mb-6 rounded-lg border border-border p-6">
-          <h3 className="text-sm font-medium mb-4">Adicionar Morada</h3>
+        <div className="glass-card form-section mb-6">
+          <h3>Adicionar Morada</h3>
           <AddressForm onSubmit={handleAdd} onCancel={() => setShowForm(false)} />
         </div>
       )}
 
       {editingAddress && (
-        <div className="mb-6 rounded-lg border border-border p-6">
-          <h3 className="text-sm font-medium mb-4">Editar Morada</h3>
+        <div className="glass-card form-section mb-6">
+          <h3>Editar Morada</h3>
           <AddressForm
             initial={editingAddress}
             onSubmit={handleUpdate}
@@ -143,9 +213,17 @@ export default function CustomerDetailPage({
       )}
 
       {addresses.length === 0 ? (
-        <div className="text-center py-12 text-muted rounded-lg border border-border">
-          <p>Nenhuma morada registada</p>
-          <p className="text-sm mt-1">
+        <div className="glass-card empty-state" style={{ padding: '40px 24px' }}>
+          <div className="empty-state-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 2C7 2 4 5.5 4 9.5S11 20 11 20s7-6.5 7-10.5S15 2 11 2z" stroke="currentColor" strokeWidth="1.3"/>
+              <circle cx="11" cy="9.5" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
+            </svg>
+          </div>
+          <p className="text-sm font-medium" style={{ color: 'var(--foreground-secondary)' }}>
+            Nenhuma morada registada
+          </p>
+          <p className="text-xs mt-1">
             Clique em &quot;Nova Morada&quot; para adicionar
           </p>
         </div>
@@ -154,28 +232,52 @@ export default function CustomerDetailPage({
           {addresses.map((a) => (
             <div
               key={a.id}
-              className={`rounded-lg border p-4 flex items-start justify-between gap-4 ${
-                a.isDefault ? "border-primary bg-blue-50/30" : "border-border"
-              }`}
+              className="glass-card p-4 flex items-start justify-between gap-4 transition-base"
+              style={a.isDefault ? {
+                borderColor: 'rgba(13, 59, 102, 0.25)',
+                background: 'rgba(13, 59, 102, 0.03)',
+              } : {}}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow = 'var(--glass-shadow-lg)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.boxShadow = 'var(--glass-shadow)';
+              }}
             >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium">{a.street}</p>
-                  {a.isDefault && (
-                    <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                      Predefinida
-                    </span>
-                  )}
+              <div className="min-w-0 flex items-start gap-3">
+                <div
+                  className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                  style={{
+                    background: a.isDefault ? 'rgba(13, 59, 102, 0.09)' : 'var(--chiffon)',
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 1.5C5.5 1.5 3.5 3.8 3.5 6.5S8 14 8 14s4.5-4.8 4.5-7.5S10.5 1.5 8 1.5z" stroke="var(--yale)" strokeWidth="1.2"/>
+                    <circle cx="8" cy="6.5" r="1.8" stroke="var(--yale)" strokeWidth="1.2"/>
+                  </svg>
                 </div>
-                <p className="text-sm text-muted mt-0.5">
-                  {a.postalCode} {a.city} &middot; Zona: {a.zone}
-                </p>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
+                      {a.street}
+                    </p>
+                    {a.isDefault && (
+                      <span className="badge badge-default">Predefinida</span>
+                    )}
+                  </div>
+                  <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
+                    {a.postalCode} {a.city}
+                    <span style={{ margin: '0 6px', opacity: 0.4 }}>·</span>
+                    Zona: {a.zone}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-1 shrink-0">
                 {!a.isDefault && (
                   <button
                     onClick={() => handleSetDefault(a.id)}
-                    className="text-xs text-muted hover:text-primary transition-colors"
+                    className="btn-ghost"
+                    style={{ fontSize: '0.75rem' }}
                   >
                     Predefinir
                   </button>
@@ -185,13 +287,15 @@ export default function CustomerDetailPage({
                     setShowForm(false);
                     setEditingAddress(a);
                   }}
-                  className="text-xs text-muted hover:text-foreground transition-colors"
+                  className="btn-ghost"
+                  style={{ fontSize: '0.75rem' }}
                 >
                   Editar
                 </button>
                 <button
                   onClick={() => handleDelete(a.id)}
-                  className="text-xs text-muted hover:text-danger transition-colors"
+                  className="btn-danger-ghost"
+                  style={{ fontSize: '0.75rem' }}
                 >
                   Eliminar
                 </button>

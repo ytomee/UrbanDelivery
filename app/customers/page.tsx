@@ -24,27 +24,31 @@ export default function CustomersPage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="animate-fade-in">
+      {/* Page header */}
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Clientes</h1>
-          <p className="text-muted text-sm mt-1">
-            Registe e consulte clientes particulares e empresas
-          </p>
+          <h1>Clientes</h1>
+          <p>Registe e consulte clientes particulares e empresas</p>
+          <div className="accent-line" />
         </div>
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="h-10 rounded-md bg-primary px-5 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
+            className="btn btn-primary"
           >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
             Novo Cliente
           </button>
         )}
       </div>
 
+      {/* New customer form */}
       {showForm && (
-        <div className="mb-8 rounded-lg border border-border p-6">
-          <h2 className="text-lg font-medium mb-4">Registar Cliente</h2>
+        <div className="glass-card form-section mb-8">
+          <h2>Registar Cliente</h2>
           <CustomerForm
             onSaved={() => {
               setShowForm(false);
@@ -55,66 +59,74 @@ export default function CustomersPage() {
         </div>
       )}
 
+      {/* Customer list */}
       {customers.length === 0 ? (
-        <div className="text-center py-16 text-muted">
-          <p className="text-lg">Nenhum cliente registado</p>
-          <p className="text-sm mt-1">
+        <div className="glass-card empty-state">
+          <div className="empty-state-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <p className="text-base font-medium" style={{ color: 'var(--foreground-secondary)' }}>
+            Nenhum cliente registado
+          </p>
+          <p className="text-sm mt-1.5">
             Clique em &quot;Novo Cliente&quot; para começar
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-gray-50 text-left">
-                <th className="px-4 py-3 font-medium">Nome</th>
-                <th className="px-4 py-3 font-medium">NIF</th>
-                <th className="px-4 py-3 font-medium">Tipo</th>
-                <th className="px-4 py-3 font-medium">Email</th>
-                <th className="px-4 py-3 font-medium">Telefone</th>
-                <th className="px-4 py-3 font-medium w-20"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map((c) => (
-                <tr
-                  key={c.id}
-                  className="border-b border-border last:border-0 hover:bg-gray-50 transition-colors"
-                >
-                  <td className="px-4 py-3 font-medium">
-                    <Link
-                      href={`/customers/${c.id}`}
-                      className="hover:text-primary transition-colors"
-                    >
-                      {c.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 font-mono text-muted">{c.nif}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        c.type === "empresa"
-                          ? "bg-blue-50 text-blue-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {c.type === "empresa" ? "Empresa" : "Particular"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-muted">{c.email}</td>
-                  <td className="px-4 py-3 text-muted">{c.phone}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => handleDelete(c.id)}
-                      className="text-xs text-muted hover:text-danger transition-colors"
-                    >
-                      Remover
-                    </button>
-                  </td>
+        <div className="glass-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>NIF</th>
+                  <th>Tipo</th>
+                  <th>Email</th>
+                  <th>Telefone</th>
+                  <th style={{ width: 80 }}></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {customers.map((c) => (
+                  <tr key={c.id}>
+                    <td className="font-medium">
+                      <Link
+                        href={`/customers/${c.id}`}
+                        className="transition-base"
+                        style={{ color: 'var(--yale)' }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--yale-light)')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--yale)')}
+                      >
+                        {c.name}
+                      </Link>
+                    </td>
+                    <td className="font-mono" style={{ color: 'var(--muted)', fontSize: '0.8125rem' }}>
+                      {c.nif}
+                    </td>
+                    <td>
+                      <span className={`badge ${c.type === "empresa" ? "badge-empresa" : "badge-particular"}`}>
+                        {c.type === "empresa" ? "Empresa" : "Particular"}
+                      </span>
+                    </td>
+                    <td style={{ color: 'var(--foreground-secondary)' }}>{c.email}</td>
+                    <td style={{ color: 'var(--foreground-secondary)' }}>{c.phone}</td>
+                    <td>
+                      <button
+                        onClick={() => handleDelete(c.id)}
+                        className="btn-danger-ghost"
+                        style={{ fontSize: '0.75rem' }}
+                      >
+                        Remover
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

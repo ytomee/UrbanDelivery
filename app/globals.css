@@ -1,30 +1,475 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #111827;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --danger: #dc2626;
-  --success: #16a34a;
+  /* ── Core palette ── */
+  --yale: #0D3B66;
+  --yale-light: #145089;
+  --yale-muted: #1a5fa0;
+  --yale-faint: #e8eef5;
+  --chiffon: #FAF0CA;
+  --chiffon-warm: #f5e8a8;
+  --chiffon-deep: #e8d480;
+
+  /* ── Semantic tokens ── */
+  --background: #f6f4ef;
+  --surface: #ffffff;
+  --foreground: #1c1c1e;
+  --foreground-secondary: #48484a;
+  --muted: #8e8e93;
+  --border: #d5d1c8;
+  --border-strong: #b8b3a8;
+  --primary: var(--yale);
+  --primary-hover: var(--yale-light);
+  --primary-faint: var(--yale-faint);
+  --accent: var(--chiffon);
+  --accent-warm: var(--chiffon-warm);
+  --danger: #c0392b;
+  --danger-bg: #fdf0ee;
+  --success: #27855a;
+  --success-bg: #ecfdf5;
+
+  /* ── Glass layer ── */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(213, 209, 200, 0.55);
+  --glass-shadow: 0 1px 3px rgba(13, 59, 102, 0.06), 0 4px 16px rgba(13, 59, 102, 0.04);
+  --glass-shadow-lg: 0 2px 6px rgba(13, 59, 102, 0.08), 0 8px 32px rgba(13, 59, 102, 0.06);
+
+  /* ── Radii ── */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-faint: var(--primary-faint);
+  --color-accent: var(--accent);
+  --color-accent-warm: var(--accent-warm);
   --color-danger: var(--danger);
+  --color-danger-bg: var(--danger-bg);
   --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
+/* ── Base ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
   background: var(--background);
+  color: var(--foreground);
+  line-height: 1.6;
+}
+
+/* subtle background texture — warm, not techy */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(250, 240, 202, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 85% 100%, rgba(13, 59, 102, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* ── Focus ring ── */
+:focus-visible {
+  outline: 2px solid var(--yale);
+  outline-offset: 2px;
+}
+
+/* ── Selection ── */
+::selection {
+  background: var(--chiffon-warm);
+  color: var(--yale);
+}
+
+/* ── Glass card ── */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card-elevated {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+/* ── Smooth transitions ── */
+.transition-base {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Input styling ── */
+.input-field {
+  width: 100%;
+  height: 42px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 0 14px;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field:hover {
+  border-color: var(--border-strong);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--yale);
+  box-shadow: 0 0 0 3px rgba(13, 59, 102, 0.1);
+}
+
+.input-field::placeholder {
+  color: var(--muted);
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--yale);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(13, 59, 102, 0.15);
+}
+
+.btn-primary:hover {
+  background: var(--yale-light);
+  box-shadow: 0 2px 6px rgba(13, 59, 102, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(13, 59, 102, 0.15);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--foreground-secondary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--foreground-secondary);
+  padding: 0 12px;
+  height: 34px;
+}
+
+.btn-ghost:hover {
+  background: rgba(13, 59, 102, 0.06);
+  color: var(--foreground);
+}
+
+.btn-danger-ghost {
+  background: transparent;
+  color: var(--muted);
+  padding: 0 12px;
+  height: 34px;
+}
+
+.btn-danger-ghost:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* ── Badge ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 100px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.badge-empresa {
+  background: rgba(13, 59, 102, 0.09);
+  color: var(--yale);
+}
+
+.badge-particular {
+  background: var(--chiffon);
+  color: #7a6a20;
+}
+
+.badge-default {
+  background: rgba(13, 59, 102, 0.08);
+  color: var(--yale);
+}
+
+/* ── Table ── */
+.data-table {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.data-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.data-table th {
+  background: var(--yale-faint);
+  padding: 10px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--foreground-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th:first-child {
+  border-top-left-radius: var(--radius);
+}
+
+.data-table th:last-child {
+  border-top-right-radius: var(--radius);
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(213, 209, 200, 0.4);
+  vertical-align: middle;
+}
+
+.data-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(250, 240, 202, 0.18);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 56px 24px;
+  color: var(--muted);
+}
+
+.empty-state-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: var(--chiffon);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--yale);
+}
+
+/* ── Page header ── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.page-header h1 {
+  font-size: 1.625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  line-height: 1.2;
+}
+
+.page-header p {
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ── Divider accent ── */
+.accent-line {
+  width: 40px;
+  height: 3px;
+  background: var(--chiffon-deep);
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out both;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.25s ease-out both;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* ── Checkbox ── */
+input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+input[type="checkbox"]:checked {
+  background: var(--yale);
+  border-color: var(--yale);
+}
+
+input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--yale-muted);
+}
+
+/* ── Select ── */
+select.input-field {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%238e8e93' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* ── Back link ── */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: var(--yale);
+}
+
+.back-link svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Form section ── */
+.form-section {
+  padding: 28px;
+  animation: slideDown 0.25s ease-out both;
+}
+
+.form-section h2,
+.form-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 20px;
   color: var(--foreground);
 }
