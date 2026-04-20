@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Customer } from "../types/customer";
+import Link from "next/link";
 import { deleteCustomer, getCustomers } from "../lib/customers";
 import CustomerForm from "./customer-form";
 
@@ -80,7 +81,14 @@ export default function CustomersPage() {
                   key={c.id}
                   className="border-b border-border last:border-0 hover:bg-gray-50 transition-colors"
                 >
-                  <td className="px-4 py-3 font-medium">{c.name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <Link
+                      href={`/customers/${c.id}`}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {c.name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 font-mono text-muted">{c.nif}</td>
                   <td className="px-4 py-3">
                     <span
