@@ -69,6 +69,17 @@ export default function RootLayout({
                 </svg>
                 Encomendas
               </Link>
+              <Link
+                href="/couriers"
+                className="btn-ghost"
+                style={{ fontSize: '0.8125rem' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 4 }}>
+                  <path d="M3.5 12h9M8 3.5c-2.5 0-4.5 2-4.5 4.5v1L2.5 11h11L12.5 9v-1c0-2.5-2-4.5-4.5-4.5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 3.5V2m4 1.5V2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                </svg>
+                Estafetas
+              </Link>
             </nav>
           </div>
         </header>
