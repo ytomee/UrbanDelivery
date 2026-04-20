@@ -255,6 +255,16 @@ body::before {
   color: var(--yale);
 }
 
+.badge-ativo {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.badge-manutencao {
+  background: rgba(194, 120, 3, 0.1);
+  color: #92660a;
+}
+
 /* ── Table ── */
 .data-table {
   width: 100%;

@@ -80,6 +80,18 @@ export default function RootLayout({
                 </svg>
                 Estafetas
               </Link>
+              <Link
+                href="/vehicles"
+                className="btn-ghost"
+                style={{ fontSize: '0.8125rem' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 4 }}>
+                  <path d="M3 11h10M5 11V7l2-3h2l2 3v4M7 11V9h2v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="5" cy="12.5" r="1" stroke="currentColor" strokeWidth="1"/>
+                  <circle cx="11" cy="12.5" r="1" stroke="currentColor" strokeWidth="1"/>
+                </svg>
+                Veículos
+              </Link>
             </nav>
           </div>
         </header>
