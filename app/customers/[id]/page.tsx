@@ -4,6 +4,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Customer } from "../../types/customer";
 import { Address } from "../../types/address";
+import { Notification } from "../../types/notification";
 import { getCustomers } from "../../lib/customers";
 import {
   addAddress,
@@ -12,6 +13,7 @@ import {
   setDefaultAddress,
   updateAddress,
 } from "../../lib/addresses";
+import { getNotificationsByCustomer } from "../../lib/notifications";
 import AddressForm from "./address-form";
 
 export default function CustomerDetailPage({
@@ -22,6 +24,7 @@ export default function CustomerDetailPage({
   const { id } = use(params);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
@@ -30,6 +33,7 @@ export default function CustomerDetailPage({
     setCustomer(found ?? null);
     if (found) {
       setAddresses(getAddressesByCustomer(found.id));
+      setNotifications(getNotificationsByCustomer(found.id));
     }
   }, [id]);
 
@@ -212,6 +216,115 @@ export default function CustomerDetailPage({
         </div>
       )}
 
+      {/* Notifications section */}
+      <div className="flex items-center justify-between mb-5 mt-10">
+        <div>
+          <h2 className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
+            Notificações
+          </h2>
+          <div className="accent-line" style={{ marginTop: 6 }} />
+        </div>
+        {notifications.length > 0 && (
+          <span className="text-sm" style={{ color: "var(--muted)" }}>
+            {notifications.length} notificaç{notifications.length === 1 ? "ão" : "ões"} enviada{notifications.length === 1 ? "" : "s"}
+          </span>
+        )}
+      </div>
+
+      {notifications.length === 0 ? (
+        <div className="glass-card empty-state" style={{ padding: "32px 24px", marginBottom: 32 }}>
+          <div className="empty-state-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M11 3a6 6 0 016 6v3.5l1.5 2H3.5L5 12.5V9a6 6 0 016-6z" stroke="currentColor" strokeWidth="1.3"/>
+              <path d="M9 17a2 2 0 004 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <p className="text-sm font-medium" style={{ color: "var(--foreground-secondary)" }}>
+            Sem notificações
+          </p>
+          <p className="text-xs mt-1">As notificações aparecem aqui quando o estado de uma encomenda mudar</p>
+        </div>
+      ) : (
+        <div className="glass-card overflow-hidden" style={{ marginBottom: 32 }}>
+          <div className="overflow-x-auto">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Data/Hora</th>
+                  <th>Canal</th>
+                  <th>Destinatário</th>
+                  <th>Encomenda</th>
+                  <th>Estado</th>
+                  <th>Mensagem</th>
+                </tr>
+              </thead>
+              <tbody>
+                {notifications.map((n) => (
+                  <tr key={n.id}>
+                    <td className="font-mono" style={{ fontSize: "0.8rem", color: "var(--muted)", whiteSpace: "nowrap" }}>
+                      {new Date(n.sentAt).toLocaleString("pt-PT", {
+                        day: "2-digit", month: "2-digit", year: "numeric",
+                        hour: "2-digit", minute: "2-digit",
+                      })}
+                    </td>
+                    <td>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          fontSize: "0.75rem",
+                          fontWeight: 600,
+                          padding: "3px 9px",
+                          borderRadius: 6,
+                          background: n.channel === "email" ? "rgba(13,59,102,0.09)" : "rgba(240,180,41,0.15)",
+                          color: n.channel === "email" ? "var(--yale)" : "#a07000",
+                        }}
+                      >
+                        {n.channel === "email" ? (
+                          <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                            <rect x="0.5" y="1.5" width="10" height="8" rx="1" stroke="currentColor" strokeWidth="1"/>
+                            <path d="M0.5 1.5L5.5 6L10.5 1.5" stroke="currentColor" strokeWidth="1"/>
+                          </svg>
+                        ) : (
+                          <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                            <rect x="3" y="0.5" width="5" height="10" rx="1.5" stroke="currentColor" strokeWidth="1"/>
+                            <path d="M4.5 8.5h2" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+                          </svg>
+                        )}
+                        {n.channel === "email" ? "Email" : "SMS"}
+                      </span>
+                    </td>
+                    <td className="font-mono" style={{ fontSize: "0.8125rem", color: "var(--foreground-secondary)" }}>
+                      {n.recipient}
+                    </td>
+                    <td className="font-mono" style={{ fontSize: "0.8125rem", color: "var(--yale)" }}>
+                      #{n.orderId.substring(0, 8)}
+                    </td>
+                    <td>
+                      <span className={`badge ${
+                        n.orderStatus === "entregue" ? "badge-ativo" :
+                        n.orderStatus === "em distribuição" ? "badge-empresa" :
+                        n.orderStatus === "cancelada" ? "badge-cancelada" :
+                        "badge-particular"
+                      }`} style={{ fontSize: "0.7rem" }}>
+                        {n.orderStatus === "pendente" ? "Pendente" :
+                         n.orderStatus === "em distribuição" ? "Em Distribuição" :
+                         n.orderStatus === "entregue" ? "Entregue" : "Cancelada"}
+                      </span>
+                    </td>
+                    <td style={{ color: "var(--foreground-secondary)", fontSize: "0.8125rem", maxWidth: 300 }}>
+                      {n.message}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Addresses section */}
       {addresses.length === 0 ? (
         <div className="glass-card empty-state" style={{ padding: '40px 24px' }}>
           <div className="empty-state-icon">

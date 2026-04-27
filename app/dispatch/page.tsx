@@ -7,6 +7,7 @@ import { Customer } from "../types/customer";
 import { getOrders, assignCourier } from "../lib/orders";
 import { getCouriers } from "../lib/couriers";
 import { getCustomers } from "../lib/customers";
+import { createStatusNotifications } from "../lib/notifications";
 
 export default function DispatchPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -39,8 +40,14 @@ export default function DispatchPage() {
 
   /* ── assignment logic ── */
   function assignOrder(orderId: string, courierId: string | null) {
-    assignCourier(orderId, courierId);
     const order = orders.find((o) => o.id === orderId);
+    const oldStatus = order?.status;
+    assignCourier(orderId, courierId);
+    const newStatus = courierId ? "em distribuição" : "pendente";
+    if (order && oldStatus !== newStatus) {
+      const customer = customers[order.customerId];
+      if (customer) createStatusNotifications(orderId, customer, newStatus);
+    }
     const courier = couriers.find((c) => c.id === courierId);
     if (courier && order) {
       setToast(`Encomenda #${order.id.substring(0, 8)} atribuída a ${courier.name}`);

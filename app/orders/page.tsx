@@ -7,6 +7,7 @@ import { Courier } from "../types/courier";
 import { getOrders, deleteOrder, updateOrderStatus } from "../lib/orders";
 import { getCustomers } from "../lib/customers";
 import { getCouriers } from "../lib/couriers";
+import { createStatusNotifications } from "../lib/notifications";
 import OrderForm from "./order-form";
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -87,7 +88,12 @@ export default function OrdersPage() {
     }
     if (cancellingOrderId) {
       try {
+        const order = orders.find((o) => o.id === cancellingOrderId);
         updateOrderStatus(cancellingOrderId, "cancelada", cancelReason.trim());
+        if (order) {
+          const customer = customers[order.customerId];
+          if (customer) createStatusNotifications(cancellingOrderId, customer, "cancelada");
+        }
         closeCancelModal();
         load();
       } catch (e) {
@@ -116,7 +122,12 @@ export default function OrdersPage() {
     }
     if (!statusOrderId) return;
     try {
+      const order = orders.find((o) => o.id === statusOrderId);
       updateOrderStatus(statusOrderId, selectedStatus as OrderStatus, statusNote.trim() || undefined);
+      if (order) {
+        const customer = customers[order.customerId];
+        if (customer) createStatusNotifications(statusOrderId, customer, selectedStatus as OrderStatus);
+      }
       closeStatusModal();
       load();
     } catch (e) {
