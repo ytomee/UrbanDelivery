@@ -81,6 +81,18 @@ export default function RootLayout({
                 Despacho
               </Link>
               <Link
+                href="/routes"
+                className="btn-ghost"
+                style={{ fontSize: '0.8125rem' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 4 }}>
+                  <path d="M3 13l4-5 3 3 3-4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="3" cy="13" r="1" fill="currentColor"/>
+                  <circle cx="13" cy="7" r="1" fill="currentColor"/>
+                </svg>
+                Rotas
+              </Link>
+              <Link
                 href="/couriers"
                 className="btn-ghost"
                 style={{ fontSize: '0.8125rem' }}

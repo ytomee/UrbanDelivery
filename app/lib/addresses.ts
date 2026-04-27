@@ -12,6 +12,10 @@ function saveAll(addresses: Address[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(addresses));
 }
 
+export function getAllAddresses(): Address[] {
+  return getAll();
+}
+
 export function getAddressesByCustomer(customerId: string): Address[] {
   return getAll().filter((a) => a.customerId === customerId);
 }

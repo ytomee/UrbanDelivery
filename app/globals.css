@@ -787,3 +787,261 @@ select.input-field {
 .cancel-reason-tooltip:hover {
   color: var(--danger);
 }
+
+/* ── Routes page ── */
+.routes-filter-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.routes-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+}
+
+.routes-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--foreground-secondary);
+}
+
+.routes-filter-summary {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+  align-self: center;
+}
+
+.routes-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Route group ── */
+.route-group {
+  overflow: hidden;
+}
+
+.route-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(213, 209, 200, 0.4);
+}
+
+.route-group-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.route-group-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--chiffon);
+  color: var(--yale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.route-group-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+  line-height: 1.2;
+}
+
+.route-group-postal {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted);
+  font-family: var(--font-geist-mono);
+}
+
+/* ── Route sequence ── */
+.route-sequence {
+  padding: 12px 20px 16px;
+}
+
+.route-stop {
+  display: flex;
+  gap: 14px;
+}
+
+.route-stop-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 28px;
+}
+
+.route-stop-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--yale);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.route-stop-line {
+  width: 2px;
+  flex: 1;
+  min-height: 20px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.route-stop-content {
+  flex: 1;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(213, 209, 200, 0.25);
+}
+
+.route-stop:last-child .route-stop-content {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.route-stop-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.route-stop-id {
+  font-size: 0.75rem;
+  color: var(--yale);
+  font-weight: 600;
+}
+
+.route-stop-customer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 2px;
+}
+
+.route-stop-address {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--foreground-secondary);
+  margin-bottom: 6px;
+}
+
+.route-stop-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.route-stop-articles {
+  font-size: 0.6875rem;
+  color: var(--muted);
+  background: rgba(13, 59, 102, 0.05);
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+
+.route-stop-date,
+.route-stop-courier {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+/* ── No-print utility ── */
+.no-print {}
+
+/* ── Print styles ── */
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  body::before {
+    display: none !important;
+  }
+
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .glass-card,
+  .glass-card-elevated {
+    background: #fff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+  }
+
+  .route-group {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .route-stop-number {
+    background: #333 !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badge {
+    border: 1px solid #ccc !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .page-header p,
+  .accent-line {
+    display: none;
+  }
+}
