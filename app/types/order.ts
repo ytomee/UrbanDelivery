@@ -26,4 +26,5 @@ export interface Order {
   statusHistory: StatusHistoryEntry[];
   cancellationReason?: string;
   cancelledAt?: string;
+  confirmedAt?: string;
 }

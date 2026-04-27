@@ -15,7 +15,7 @@ import {
   updateAddress,
 } from "../../lib/addresses";
 import { getNotificationsByCustomer } from "../../lib/notifications";
-import { getOrdersByCustomer } from "../../lib/orders";
+import { getOrdersByCustomer, confirmReception } from "../../lib/orders";
 import AddressForm from "./address-form";
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -302,6 +302,7 @@ export default function CustomerDetailPage({
                         <th>Estado</th>
                         <th>Artigos</th>
                         <th>Total</th>
+                        <th>Receção</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -329,6 +330,37 @@ export default function CustomerDetailPage({
                             </td>
                             <td style={{ color: "var(--foreground-secondary)", fontVariantNumeric: "tabular-nums" }}>
                               {articleCount} {articleCount === 1 ? "artigo" : "artigos"}
+                            </td>
+                            <td>
+                              {o.status === "entregue" && !o.confirmedAt && (
+                                <button
+                                  onClick={() => {
+                                    confirmReception(o.id);
+                                    load();
+                                  }}
+                                  className="btn btn-confirm-reception"
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2.5 6.5l2.5 2.5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                  Confirmar Receção
+                                </button>
+                              )}
+                              {o.confirmedAt && (
+                                <span className="confirmed-label">
+                                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1"/>
+                                    <path d="M3.5 5.5l1.5 1.5 3-3" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                  Confirmada a {new Date(o.confirmedAt).toLocaleString("pt-PT", {
+                                    day: "2-digit", month: "2-digit", year: "numeric",
+                                    hour: "2-digit", minute: "2-digit",
+                                  })}
+                                </span>
+                              )}
+                              {o.status !== "entregue" && !o.confirmedAt && (
+                                <span style={{ color: "var(--muted)", fontSize: "0.75rem" }}>—</span>
+                              )}
                             </td>
                           </tr>
                         );

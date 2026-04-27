@@ -112,6 +112,24 @@ export function rescheduleOrder(id: string, newDate: string, reason: string): vo
   localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
+export function confirmReception(id: string): void {
+  const orders = getOrders();
+  const index = orders.findIndex((o) => o.id === id);
+  if (index === -1) return;
+  const order = orders[index];
+  if (order.status !== "entregue") return;
+  const now = new Date().toISOString();
+  orders[index] = {
+    ...order,
+    confirmedAt: now,
+    statusHistory: [
+      ...(order.statusHistory ?? []),
+      { status: "entregue", changedAt: now, note: "Receção confirmada pelo cliente" },
+    ],
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
 export function getOrdersByCustomer(customerId: string): Order[] {
   return getOrders()
     .filter((o) => o.customerId === customerId)
