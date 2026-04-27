@@ -1,5 +1,18 @@
 export type OrderStatus = "pendente" | "em distribuição" | "entregue" | "cancelada";
 
+export interface StatusHistoryEntry {
+  status: OrderStatus;
+  changedAt: string;
+  note?: string;
+}
+
+export const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  "pendente": ["em distribuição", "cancelada"],
+  "em distribuição": ["entregue", "cancelada"],
+  "entregue": [],
+  "cancelada": [],
+};
+
 export interface Order {
   id: string;
   customerId: string;
@@ -9,6 +22,7 @@ export interface Order {
   createdAt: string;
   courierId?: string;
   status: OrderStatus;
+  statusHistory: StatusHistoryEntry[];
   cancellationReason?: string;
   cancelledAt?: string;
 }

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Order } from "../types/order";
 import { Courier } from "../types/courier";
 import { Customer } from "../types/customer";
-import { getOrders, updateOrder } from "../lib/orders";
+import { getOrders, assignCourier } from "../lib/orders";
 import { getCouriers } from "../lib/couriers";
 import { getCustomers } from "../lib/customers";
 
@@ -39,10 +39,7 @@ export default function DispatchPage() {
 
   /* ── assignment logic ── */
   function assignOrder(orderId: string, courierId: string | null) {
-    updateOrder(orderId, {
-      courierId: courierId || undefined,
-      status: courierId ? "em distribuição" : "pendente",
-    });
+    assignCourier(orderId, courierId);
     const order = orders.find((o) => o.id === orderId);
     const courier = couriers.find((c) => c.id === courierId);
     if (courier && order) {
