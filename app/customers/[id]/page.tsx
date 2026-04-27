@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Customer } from "../../types/customer";
 import { Address } from "../../types/address";
 import { Notification } from "../../types/notification";
+import { Order, OrderStatus } from "../../types/order";
 import { getCustomers } from "../../lib/customers";
 import {
   addAddress,
@@ -14,7 +15,22 @@ import {
   updateAddress,
 } from "../../lib/addresses";
 import { getNotificationsByCustomer } from "../../lib/notifications";
+import { getOrdersByCustomer } from "../../lib/orders";
 import AddressForm from "./address-form";
+
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  "pendente": "Pendente",
+  "em distribuição": "Em Distribuição",
+  "entregue": "Entregue",
+  "cancelada": "Cancelada",
+};
+
+const STATUS_BADGE: Record<OrderStatus, string> = {
+  "pendente": "badge-particular",
+  "em distribuição": "badge-empresa",
+  "entregue": "badge-ativo",
+  "cancelada": "badge-cancelada",
+};
 
 export default function CustomerDetailPage({
   params,
@@ -25,6 +41,8 @@ export default function CustomerDetailPage({
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [dateSortAsc, setDateSortAsc] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
@@ -34,6 +52,7 @@ export default function CustomerDetailPage({
     if (found) {
       setAddresses(getAddressesByCustomer(found.id));
       setNotifications(getNotificationsByCustomer(found.id));
+      setOrders(getOrdersByCustomer(found.id));
     }
   }, [id]);
 
@@ -215,6 +234,111 @@ export default function CustomerDetailPage({
           />
         </div>
       )}
+
+      {/* Order history section */}
+      {(() => {
+        const sorted = [...orders].sort((a, b) =>
+          dateSortAsc
+            ? a.createdAt.localeCompare(b.createdAt)
+            : b.createdAt.localeCompare(a.createdAt)
+        );
+        return (
+          <>
+            <div className="flex items-center justify-between mb-5 mt-10">
+              <div>
+                <h2 className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
+                  Histórico de Encomendas
+                </h2>
+                <div className="accent-line" style={{ marginTop: 6 }} />
+              </div>
+              {orders.length > 0 && (
+                <span className="text-sm" style={{ color: "var(--muted)" }}>
+                  {orders.length} encomenda{orders.length !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+
+            {orders.length === 0 ? (
+              <div className="glass-card empty-state" style={{ padding: "32px 24px", marginBottom: 32 }}>
+                <div className="empty-state-icon">
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                    <path d="M8 2.5L2.5 5.5V10.5L8 13.5L13.5 10.5V5.5L8 2.5Z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+                    <path d="M2.5 5.5L8 8.5L13.5 5.5" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+                    <path d="M8 13.5V8.5" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <p className="text-sm font-medium" style={{ color: "var(--foreground-secondary)" }}>
+                  Sem encomendas registadas
+                </p>
+              </div>
+            ) : (
+              <div className="glass-card overflow-hidden" style={{ marginBottom: 32 }}>
+                <div className="overflow-x-auto">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>
+                          <button
+                            onClick={() => setDateSortAsc((v) => !v)}
+                            style={{
+                              background: "none", border: "none", cursor: "pointer",
+                              display: "inline-flex", alignItems: "center", gap: 5,
+                              fontWeight: 600, fontSize: "inherit", color: "inherit", padding: 0,
+                            }}
+                          >
+                            Data
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.6 }}>
+                              {dateSortAsc ? (
+                                <path d="M3 7.5l3-3 3 3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                              ) : (
+                                <path d="M3 4.5l3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                              )}
+                            </svg>
+                          </button>
+                        </th>
+                        <th>ID</th>
+                        <th>Estado</th>
+                        <th>Artigos</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sorted.map((o) => {
+                        const articleCount = o.articles
+                          ? o.articles.split(",").map((s) => s.trim()).filter(Boolean).length
+                          : 0;
+                        return (
+                          <tr key={o.id} className={o.status === "cancelada" ? "row-cancelled" : ""}>
+                            <td style={{ color: "var(--foreground-secondary)", whiteSpace: "nowrap" }}>
+                              {new Date(o.createdAt).toLocaleDateString("pt-PT", {
+                                day: "2-digit", month: "2-digit", year: "numeric",
+                              })}
+                            </td>
+                            <td className="font-mono" style={{ fontSize: "0.8125rem", color: "var(--yale)" }}>
+                              #{o.id.substring(0, 8)}
+                            </td>
+                            <td>
+                              <span className={`badge ${STATUS_BADGE[o.status]}`} style={{ fontSize: "0.7rem" }}>
+                                {STATUS_LABELS[o.status]}
+                              </span>
+                            </td>
+                            <td style={{ color: "var(--foreground-secondary)", maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {o.articles || "—"}
+                            </td>
+                            <td style={{ color: "var(--foreground-secondary)", fontVariantNumeric: "tabular-nums" }}>
+                              {articleCount} {articleCount === 1 ? "artigo" : "artigos"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {/* Notifications section */}
       <div className="flex items-center justify-between mb-5 mt-10">

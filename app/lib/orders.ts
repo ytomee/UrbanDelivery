@@ -122,6 +122,12 @@ export function rescheduleOrder(id: string, newDate: string, reason: string): vo
   localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
+export function getOrdersByCustomer(customerId: string): Order[] {
+  return getOrders()
+    .filter((o) => o.customerId === customerId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
 export function deleteOrder(id: string): void {
   const orders = getOrders().filter((o) => o.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
