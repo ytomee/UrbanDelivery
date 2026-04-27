@@ -30,6 +30,21 @@ export function updateOrder(id: string, data: Partial<Pick<Order, "courierId" | 
   }
 }
 
+export function cancelOrder(id: string, reason: string): void {
+  const orders = getOrders();
+  const index = orders.findIndex((o) => o.id === id);
+  if (index !== -1) {
+    orders[index] = {
+      ...orders[index],
+      status: "cancelada",
+      cancellationReason: reason,
+      cancelledAt: new Date().toISOString(),
+      courierId: undefined,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  }
+}
+
 export function deleteOrder(id: string): void {
   const orders = getOrders().filter((o) => o.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));

@@ -9,4 +9,6 @@ export interface Order {
   createdAt: string;
   courierId?: string;
   status: OrderStatus;
+  cancellationReason?: string;
+  cancelledAt?: string;
 }

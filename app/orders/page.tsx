@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Order } from "../types/order";
 import { Customer } from "../types/customer";
 import { Courier } from "../types/courier";
-import { getOrders, deleteOrder } from "../lib/orders";
+import { getOrders, deleteOrder, cancelOrder } from "../lib/orders";
 import { getCustomers } from "../lib/customers";
 import { getCouriers } from "../lib/couriers";
 import OrderForm from "./order-form";
@@ -14,6 +14,9 @@ export default function OrdersPage() {
   const [customers, setCustomers] = useState<Record<string, Customer>>({});
   const [couriersMap, setCouriersMap] = useState<Record<string, Courier>>({});
   const [showForm, setShowForm] = useState(false);
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelError, setCancelError] = useState("");
 
   const load = useCallback(() => {
     setOrders(getOrders());
@@ -40,8 +43,100 @@ export default function OrdersPage() {
     }
   }
 
+  function openCancelModal(orderId: string) {
+    setCancellingOrderId(orderId);
+    setCancelReason("");
+    setCancelError("");
+  }
+
+  function closeCancelModal() {
+    setCancellingOrderId(null);
+    setCancelReason("");
+    setCancelError("");
+  }
+
+  function handleCancel() {
+    if (!cancelReason.trim()) {
+      setCancelError("O motivo do cancelamento é obrigatório");
+      return;
+    }
+    if (cancellingOrderId) {
+      cancelOrder(cancellingOrderId, cancelReason.trim());
+      closeCancelModal();
+      load();
+    }
+  }
+
+  const cancellingOrder = cancellingOrderId
+    ? orders.find((o) => o.id === cancellingOrderId)
+    : null;
+
   return (
     <div className="animate-fade-in">
+      {/* Cancel modal */}
+      {cancellingOrderId && (
+        <div className="modal-overlay" onClick={closeCancelModal}>
+          <div
+            className="modal-content glass-card-elevated animate-slide-down"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div className="modal-header-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M10 6.5v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="10" cy="13.5" r="0.75" fill="currentColor"/>
+                </svg>
+              </div>
+              <div>
+                <h3>Cancelar Encomenda</h3>
+                <p className="text-sm" style={{ color: 'var(--muted)', marginTop: 2 }}>
+                  #{cancellingOrder?.id.substring(0, 8)} · {cancellingOrder ? customers[cancellingOrder.customerId]?.name || "Desconhecido" : ""}
+                </p>
+              </div>
+            </div>
+            <div className="modal-body">
+              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+                Motivo do cancelamento <span style={{ color: 'var(--danger)' }}>*</span>
+              </label>
+              <textarea
+                className="input-field"
+                style={{ height: 'auto', minHeight: 80, padding: '10px 14px', resize: 'vertical' }}
+                value={cancelReason}
+                onChange={(e) => {
+                  setCancelReason(e.target.value);
+                  if (cancelError) setCancelError("");
+                }}
+                placeholder="Ex: Cliente solicitou cancelamento, artigo indisponível..."
+                autoFocus
+              />
+              {cancelError && (
+                <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{cancelError}</p>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                onClick={closeCancelModal}
+                className="btn btn-secondary"
+              >
+                Voltar
+              </button>
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="btn btn-danger"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                Confirmar Cancelamento
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Page header */}
       <div className="page-header">
         <div>
@@ -103,12 +198,12 @@ export default function OrdersPage() {
                   <th>Data Prevista</th>
                   <th>Estado</th>
                   <th>Estafeta</th>
-                  <th style={{ width: 80 }}></th>
+                  <th style={{ width: 140 }}></th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((o) => (
-                  <tr key={o.id}>
+                  <tr key={o.id} className={o.status === "cancelada" ? "row-cancelled" : ""}>
                     <td className="font-mono" style={{ fontSize: '0.8125rem', color: 'var(--yale)' }}>
                       #{o.id.substring(0, 8)}
                     </td>
@@ -123,7 +218,7 @@ export default function OrdersPage() {
                       <span className={`badge ${
                         o.status === "entregue" ? "badge-ativo" :
                         o.status === "em distribuição" ? "badge-empresa" :
-                        o.status === "cancelada" ? "badge-manutencao" :
+                        o.status === "cancelada" ? "badge-cancelada" :
                         "badge-particular"
                       }`}>
                         {o.status === "em distribuição" ? "Em Distribuição" :
@@ -131,18 +226,38 @@ export default function OrdersPage() {
                          o.status === "cancelada" ? "Cancelada" :
                          "Pendente"}
                       </span>
+                      {o.status === "cancelada" && o.cancellationReason && (
+                        <span className="cancel-reason-tooltip" title={o.cancellationReason}>
+                          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1"/>
+                            <path d="M6.5 4.5v2.5" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+                            <circle cx="6.5" cy="9" r="0.5" fill="currentColor"/>
+                          </svg>
+                        </span>
+                      )}
                     </td>
                     <td style={{ color: 'var(--foreground-secondary)' }}>
                       {o.courierId ? couriersMap[o.courierId]?.name || "—" : "—"}
                     </td>
                     <td>
-                      <button
-                        onClick={() => handleDelete(o.id)}
-                        className="btn-danger-ghost"
-                        style={{ fontSize: '0.75rem' }}
-                      >
-                        Remover
-                      </button>
+                      <div className="flex gap-2">
+                        {o.status !== "cancelada" && o.status !== "entregue" && (
+                          <button
+                            onClick={() => openCancelModal(o.id)}
+                            className="btn-danger-ghost"
+                            style={{ fontSize: '0.75rem' }}
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(o.id)}
+                          className="btn-danger-ghost"
+                          style={{ fontSize: '0.75rem' }}
+                        >
+                          Remover
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -677,3 +677,113 @@ select.input-field {
   box-shadow: 0 4px 20px rgba(13, 59, 102, 0.3);
 }
 
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 480px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  background: var(--danger-bg);
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modal-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.modal-body {
+  padding: 20px 24px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: rgba(246, 244, 239, 0.5);
+}
+
+/* ── Cancel-specific button ── */
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(192, 57, 43, 0.15);
+}
+
+.btn-danger:hover {
+  background: #a93226;
+  box-shadow: 0 2px 6px rgba(192, 57, 43, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-danger:active {
+  transform: translateY(0);
+}
+
+/* ── Cancelled row ── */
+.row-cancelled td {
+  opacity: 0.55;
+}
+
+.row-cancelled td .badge {
+  opacity: 1;
+}
+
+.row-cancelled:hover td {
+  opacity: 0.75;
+}
+
+/* ── Badge cancelada ── */
+.badge-cancelada {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* ── Cancel reason tooltip ── */
+.cancel-reason-tooltip {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  color: var(--muted);
+  cursor: help;
+  vertical-align: middle;
+  transition: color 0.15s ease;
+}
+
+.cancel-reason-tooltip:hover {
+  color: var(--danger);
+}
