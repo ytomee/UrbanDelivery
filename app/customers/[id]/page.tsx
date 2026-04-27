@@ -23,6 +23,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   "em distribuição": "Em Distribuição",
   "entregue": "Entregue",
   "cancelada": "Cancelada",
+  "falhou": "Falhou",
 };
 
 const STATUS_BADGE: Record<OrderStatus, string> = {
@@ -30,6 +31,7 @@ const STATUS_BADGE: Record<OrderStatus, string> = {
   "em distribuição": "badge-empresa",
   "entregue": "badge-ativo",
   "cancelada": "badge-cancelada",
+  "falhou": "badge-cancelada",
 };
 
 export default function CustomerDetailPage({
@@ -460,11 +462,13 @@ export default function CustomerDetailPage({
                           n.orderStatus === "entregue" ? "badge-ativo" :
                           n.orderStatus === "em distribuição" ? "badge-empresa" :
                           n.orderStatus === "cancelada" ? "badge-cancelada" :
+                          n.orderStatus === "falhou" ? "badge-cancelada" :
                           "badge-particular"
                         }`} style={{ fontSize: "0.7rem" }}>
                           {n.orderStatus === "pendente" ? "Pendente" :
                            n.orderStatus === "em distribuição" ? "Em Distribuição" :
-                           n.orderStatus === "entregue" ? "Entregue" : "Cancelada"}
+                           n.orderStatus === "entregue" ? "Entregue" :
+                           n.orderStatus === "falhou" ? "Falhou" : "Cancelada"}
                         </span>
                       ) : null}
                     </td>

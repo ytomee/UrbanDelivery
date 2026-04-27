@@ -1,4 +1,4 @@
-export type OrderStatus = "pendente" | "em distribuição" | "entregue" | "cancelada";
+export type OrderStatus = "pendente" | "em distribuição" | "entregue" | "cancelada" | "falhou";
 
 export interface StatusHistoryEntry {
   status: OrderStatus;
@@ -8,9 +8,10 @@ export interface StatusHistoryEntry {
 
 export const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   "pendente": ["em distribuição", "cancelada"],
-  "em distribuição": ["entregue", "cancelada"],
+  "em distribuição": ["entregue", "cancelada", "falhou"],
   "entregue": [],
   "cancelada": [],
+  "falhou": [],
 };
 
 export interface Order {

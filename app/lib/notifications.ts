@@ -9,6 +9,7 @@ const STATUS_MESSAGES: Record<OrderStatus, string> = {
   "em distribuição": "A sua encomenda está em distribuição e será entregue em breve.",
   "entregue": "A sua encomenda foi entregue com sucesso. Obrigado pela confiança!",
   "cancelada": "A sua encomenda foi cancelada. Contacte-nos para mais informações.",
+  "falhou": "Não foi possível entregar a sua encomenda. Iremos tentar novamente ou contactá-lo brevemente.",
 };
 
 export function getNotifications(): Notification[] {

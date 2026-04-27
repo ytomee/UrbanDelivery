@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Courier } from "../types/courier";
 import { getCouriers, deleteCourier } from "../lib/couriers";
 import CourierForm from "./courier-form";
@@ -84,7 +85,7 @@ export default function CouriersPage() {
                   <th>Contacto</th>
                   <th>Veículo</th>
                   <th>Zona Preferida</th>
-                  <th style={{ width: 80 }}></th>
+                  <th style={{ width: 180, textAlign: 'right' }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -103,11 +104,18 @@ export default function CouriersPage() {
                       </span>
                     </td>
                     <td style={{ color: 'var(--foreground-secondary)' }}>{c.preferredZone}</td>
-                    <td>
+                    <td style={{ textAlign: 'right' }}>
+                      <Link 
+                        href={`/couriers/${c.id}/dashboard`}
+                        className="btn btn-secondary mr-2"
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                      >
+                        Aceder App
+                      </Link>
                       <button
                         onClick={() => handleDelete(c.id)}
                         className="btn-danger-ghost"
-                        style={{ fontSize: '0.75rem' }}
+                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
                       >
                         Remover
                       </button>

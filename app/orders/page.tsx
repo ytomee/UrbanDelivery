@@ -15,6 +15,7 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
   "em distribuição": "Em Distribuição",
   "entregue": "Entregue",
   "cancelada": "Cancelada",
+  "falhou": "Falhou",
 };
 
 const STATUS_BADGE: Record<OrderStatus, string> = {
@@ -22,6 +23,7 @@ const STATUS_BADGE: Record<OrderStatus, string> = {
   "em distribuição": "badge-empresa",
   "entregue": "badge-ativo",
   "cancelada": "badge-cancelada",
+  "falhou": "badge-cancelada",
 };
 
 function formatDateTime(iso: string) {

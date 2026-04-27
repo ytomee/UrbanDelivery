@@ -37,28 +37,18 @@ export function updateOrder(id: string, data: Partial<Pick<Order, "courierId">>)
   }
 }
 
-/** Used by the dispatch board: assigns/unassigns a courier and adjusts status accordingly. */
+/** Used by the dispatch board: assigns/unassigns a courier. Doesn't automatically set "em distribuição". */
 export function assignCourier(orderId: string, courierId: string | null): void {
   const orders = getOrders();
   const index = orders.findIndex((o) => o.id === orderId);
   if (index === -1) return;
 
   const order = orders[index];
-  const now = new Date().toISOString();
-  const newStatus: OrderStatus = courierId ? "em distribuição" : "pendente";
-
-  if (newStatus === order.status) {
-    // Only update courierId, no status change needed
-    orders[index] = { ...order, courierId: courierId ?? undefined };
-  } else {
-    const entry = { status: newStatus, changedAt: now };
-    orders[index] = {
-      ...order,
-      courierId: courierId ?? undefined,
-      status: newStatus,
-      statusHistory: [...(order.statusHistory ?? []), entry],
-    };
-  }
+  
+  // Update the courier ID, but status remains whatever it was (usually "pendente")
+  // The courier will mark it as "em distribuição" when they click "Recolhida"
+  orders[index] = { ...order, courierId: courierId ?? undefined };
+  
   localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
 }
 
