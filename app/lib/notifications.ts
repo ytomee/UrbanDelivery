@@ -14,7 +14,10 @@ const STATUS_MESSAGES: Record<OrderStatus, string> = {
 export function getNotifications(): Notification[] {
   if (typeof window === "undefined") return [];
   const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
+  if (!data) return [];
+  const all: Notification[] = JSON.parse(data);
+  // Migrate legacy notifications that lack `type`
+  return all.map((n) => (n.type ? n : { ...n, type: "status_change" as const }));
 }
 
 export function getNotificationsByCustomer(customerId: string): Notification[] {
@@ -23,9 +26,7 @@ export function getNotificationsByCustomer(customerId: string): Notification[] {
     .sort((a, b) => b.sentAt.localeCompare(a.sentAt));
 }
 
-function addNotification(
-  data: Omit<Notification, "id" | "sentAt">
-): Notification {
+function addNotification(data: Omit<Notification, "id" | "sentAt">): Notification {
   const all = getNotifications();
   const n: Notification = { ...data, id: crypto.randomUUID(), sentAt: new Date().toISOString() };
   all.push(n);
@@ -33,22 +34,47 @@ function addNotification(
   return n;
 }
 
-export function createStatusNotifications(
-  orderId: string,
-  customer: Customer,
-  newStatus: OrderStatus
-): void {
-  const message = STATUS_MESSAGES[newStatus];
-  const base = { customerId: customer.id, orderId, orderStatus: newStatus, message };
-
+function sendToChannels(base: Omit<Notification, "id" | "sentAt" | "channel" | "recipient">, customer: Customer) {
   const channels: Array<{ channel: NotificationChannel; recipient: string }> = [
     { channel: "email", recipient: customer.email },
     { channel: "sms", recipient: customer.phone },
   ];
+  channels.forEach(({ channel, recipient }) => addNotification({ ...base, channel, recipient }));
+}
 
-  channels.forEach(({ channel, recipient }) => {
-    addNotification({ ...base, channel, recipient });
-  });
+export function createStatusNotifications(orderId: string, customer: Customer, newStatus: OrderStatus): void {
+  sendToChannels({
+    type: "status_change",
+    customerId: customer.id,
+    orderId,
+    orderStatus: newStatus,
+    message: STATUS_MESSAGES[newStatus],
+  }, customer);
+}
+
+export function createDelayNotification(orderId: string, customer: Customer, reason: string): void {
+  sendToChannels({
+    type: "delay",
+    customerId: customer.id,
+    orderId,
+    message: `A sua encomenda sofreu um atraso. Motivo: ${reason}`,
+  }, customer);
+}
+
+export function createRescheduleNotification(
+  orderId: string,
+  customer: Customer,
+  newExpectedDate: string,
+  reason: string
+): void {
+  const formatted = new Date(newExpectedDate).toLocaleDateString("pt-PT");
+  sendToChannels({
+    type: "reschedule",
+    customerId: customer.id,
+    orderId,
+    newExpectedDate,
+    message: `A sua encomenda foi reagendada para ${formatted}. Motivo: ${reason}`,
+  }, customer);
 }
 
 export function deleteNotificationsByOrder(orderId: string): void {

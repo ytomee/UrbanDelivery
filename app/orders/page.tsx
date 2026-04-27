@@ -4,10 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { Order, OrderStatus, VALID_TRANSITIONS } from "../types/order";
 import { Customer } from "../types/customer";
 import { Courier } from "../types/courier";
-import { getOrders, deleteOrder, updateOrderStatus } from "../lib/orders";
+import { getOrders, deleteOrder, updateOrderStatus, addDelayNote, rescheduleOrder } from "../lib/orders";
 import { getCustomers } from "../lib/customers";
 import { getCouriers } from "../lib/couriers";
-import { createStatusNotifications } from "../lib/notifications";
+import { createStatusNotifications, createDelayNotification, createRescheduleNotification } from "../lib/notifications";
 import OrderForm from "./order-form";
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -50,6 +50,13 @@ export default function OrdersPage() {
 
   // History modal state
   const [historyOrderId, setHistoryOrderId] = useState<string | null>(null);
+
+  // Alert (delay/reschedule) modal state
+  const [alertOrderId, setAlertOrderId] = useState<string | null>(null);
+  const [alertType, setAlertType] = useState<"delay" | "reschedule">("delay");
+  const [alertReason, setAlertReason] = useState("");
+  const [alertNewDate, setAlertNewDate] = useState("");
+  const [alertError, setAlertError] = useState("");
 
   const load = useCallback(() => {
     setOrders(getOrders());
@@ -133,6 +140,37 @@ export default function OrdersPage() {
     } catch (e) {
       setStatusError(e instanceof Error ? e.message : "Erro ao atualizar");
     }
+  }
+
+  // Alert modal handlers
+  function openAlertModal(orderId: string) {
+    setAlertOrderId(orderId);
+    setAlertType("delay");
+    setAlertReason("");
+    setAlertNewDate("");
+    setAlertError("");
+  }
+  function closeAlertModal() {
+    setAlertOrderId(null);
+    setAlertReason("");
+    setAlertNewDate("");
+    setAlertError("");
+  }
+  function handleAlert() {
+    if (!alertReason.trim()) { setAlertError("O motivo é obrigatório"); return; }
+    if (alertType === "reschedule" && !alertNewDate) { setAlertError("A nova data é obrigatória"); return; }
+    if (!alertOrderId) return;
+    const order = orders.find((o) => o.id === alertOrderId);
+    const customer = order ? customers[order.customerId] : undefined;
+    if (alertType === "delay") {
+      addDelayNote(alertOrderId, alertReason.trim());
+      if (customer) createDelayNotification(alertOrderId, customer, alertReason.trim());
+    } else {
+      rescheduleOrder(alertOrderId, alertNewDate, alertReason.trim());
+      if (customer) createRescheduleNotification(alertOrderId, customer, alertNewDate, alertReason.trim());
+    }
+    closeAlertModal();
+    load();
   }
 
   const statusOrder = statusOrderId ? orders.find((o) => o.id === statusOrderId) : null;
@@ -351,6 +389,123 @@ export default function OrdersPage() {
         </div>
       )}
 
+      {/* Alert (delay / reschedule) modal */}
+      {alertOrderId && (
+        <div className="modal-overlay" onClick={closeAlertModal}>
+          <div className="modal-content glass-card-elevated animate-slide-down" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-header-icon">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 3.5L2 16.5h16L10 3.5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                  <path d="M10 8.5v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  <circle cx="10" cy="14.5" r="0.75" fill="currentColor"/>
+                </svg>
+              </div>
+              <div>
+                <h3>Aviso de Atraso / Reagendamento</h3>
+                <p className="text-sm" style={{ color: "var(--muted)", marginTop: 2 }}>
+                  #{alertOrderId.substring(0, 8)} · {customers[orders.find((o) => o.id === alertOrderId)?.customerId ?? ""]?.name || "Desconhecido"}
+                </p>
+              </div>
+            </div>
+            <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Type selector */}
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: "var(--foreground-secondary)" }}>
+                  Tipo de aviso <span style={{ color: "var(--danger)" }}>*</span>
+                </label>
+                <div style={{ display: "flex", gap: 10 }}>
+                  {(["delay", "reschedule"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => { setAlertType(t); setAlertError(""); }}
+                      style={{
+                        padding: "8px 18px",
+                        borderRadius: 8,
+                        border: alertType === t ? "2px solid var(--yale)" : "2px solid var(--border)",
+                        background: alertType === t ? "var(--yale)" : "var(--surface)",
+                        color: alertType === t ? "#fff" : "var(--foreground)",
+                        fontWeight: 500,
+                        fontSize: "0.875rem",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 7,
+                      }}
+                    >
+                      {t === "delay" ? (
+                        <>
+                          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                            <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.1"/>
+                            <path d="M6.5 4v3l2 1" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+                          </svg>
+                          Atraso
+                        </>
+                      ) : (
+                        <>
+                          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                            <rect x="1" y="2" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.1"/>
+                            <path d="M1 5h11M4 1v2M9 1v2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/>
+                          </svg>
+                          Reagendamento
+                        </>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* New date (reschedule only) */}
+              {alertType === "reschedule" && (
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--foreground-secondary)" }}>
+                    Nova data prevista <span style={{ color: "var(--danger)" }}>*</span>
+                  </label>
+                  <input
+                    type="date"
+                    className="input-field"
+                    value={alertNewDate}
+                    min={new Date().toISOString().split("T")[0]}
+                    onChange={(e) => { setAlertNewDate(e.target.value); if (alertError) setAlertError(""); }}
+                  />
+                </div>
+              )}
+
+              {/* Reason */}
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--foreground-secondary)" }}>
+                  {alertType === "delay" ? "Motivo do atraso" : "Motivo do reagendamento"}{" "}
+                  <span style={{ color: "var(--danger)" }}>*</span>
+                </label>
+                <textarea
+                  className="input-field"
+                  style={{ height: "auto", minHeight: 80, padding: "10px 14px", resize: "vertical" }}
+                  value={alertReason}
+                  onChange={(e) => { setAlertReason(e.target.value); if (alertError) setAlertError(""); }}
+                  placeholder={alertType === "delay"
+                    ? "Ex: Congestionamento de tráfego, condições meteorológicas..."
+                    : "Ex: Ausência do destinatário, morada inacessível..."}
+                  autoFocus
+                />
+              </div>
+
+              {alertError && <p className="text-xs" style={{ color: "var(--danger)" }}>{alertError}</p>}
+            </div>
+            <div className="modal-footer">
+              <button type="button" onClick={closeAlertModal} className="btn btn-secondary">Cancelar</button>
+              <button type="button" onClick={handleAlert} className="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M2 7l3.5 3.5L12 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Enviar Aviso
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Page header */}
       <div className="page-header">
         <div>
@@ -443,7 +598,7 @@ export default function OrdersPage() {
                       {o.courierId ? couriersMap[o.courierId]?.name || "—" : "—"}
                     </td>
                     <td>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2" style={{ flexWrap: "wrap" }}>
                         {VALID_TRANSITIONS[o.status].filter((s) => s !== "cancelada").length > 0 && (
                           <button
                             onClick={() => openStatusModal(o.id)}
@@ -451,6 +606,20 @@ export default function OrdersPage() {
                             style={{ fontSize: "0.75rem", padding: "4px 10px" }}
                           >
                             Atualizar Estado
+                          </button>
+                        )}
+                        {(o.status === "pendente" || o.status === "em distribuição") && (
+                          <button
+                            onClick={() => openAlertModal(o.id)}
+                            className="btn btn-secondary"
+                            style={{ fontSize: "0.75rem", padding: "4px 10px", display: "flex", alignItems: "center", gap: 5 }}
+                          >
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                              <path d="M6 1.5L1 10.5h10L6 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+                              <path d="M6 5v3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                              <circle cx="6" cy="9" r="0.5" fill="currentColor"/>
+                            </svg>
+                            Aviso
                           </button>
                         )}
                         {o.status !== "cancelada" && o.status !== "entregue" && (

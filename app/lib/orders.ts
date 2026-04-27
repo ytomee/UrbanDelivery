@@ -90,6 +90,38 @@ export function cancelOrder(id: string, reason: string): void {
   updateOrderStatus(id, "cancelada", reason);
 }
 
+export function addDelayNote(id: string, reason: string): void {
+  const orders = getOrders();
+  const index = orders.findIndex((o) => o.id === id);
+  if (index === -1) return;
+  const now = new Date().toISOString();
+  orders[index] = {
+    ...orders[index],
+    statusHistory: [
+      ...(orders[index].statusHistory ?? []),
+      { status: orders[index].status, changedAt: now, note: `Aviso de atraso: ${reason}` },
+    ],
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
+export function rescheduleOrder(id: string, newDate: string, reason: string): void {
+  const orders = getOrders();
+  const index = orders.findIndex((o) => o.id === id);
+  if (index === -1) return;
+  const now = new Date().toISOString();
+  const formatted = new Date(newDate).toLocaleDateString("pt-PT");
+  orders[index] = {
+    ...orders[index],
+    expectedDate: newDate,
+    statusHistory: [
+      ...(orders[index].statusHistory ?? []),
+      { status: orders[index].status, changedAt: now, note: `Reagendado para ${formatted}: ${reason}` },
+    ],
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
 export function deleteOrder(id: string): void {
   const orders = getOrders().filter((o) => o.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));

@@ -1,6 +1,7 @@
 import { OrderStatus } from "./order";
 
 export type NotificationChannel = "email" | "sms";
+export type NotificationType = "status_change" | "delay" | "reschedule";
 
 export interface Notification {
   id: string;
@@ -8,7 +9,9 @@ export interface Notification {
   orderId: string;
   channel: NotificationChannel;
   recipient: string;
-  orderStatus: OrderStatus;
+  type: NotificationType;
+  orderStatus?: OrderStatus;
+  newExpectedDate?: string;
   message: string;
   sentAt: string;
 }

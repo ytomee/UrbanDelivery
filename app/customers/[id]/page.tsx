@@ -302,16 +302,47 @@ export default function CustomerDetailPage({
                       #{n.orderId.substring(0, 8)}
                     </td>
                     <td>
-                      <span className={`badge ${
-                        n.orderStatus === "entregue" ? "badge-ativo" :
-                        n.orderStatus === "em distribuição" ? "badge-empresa" :
-                        n.orderStatus === "cancelada" ? "badge-cancelada" :
-                        "badge-particular"
-                      }`} style={{ fontSize: "0.7rem" }}>
-                        {n.orderStatus === "pendente" ? "Pendente" :
-                         n.orderStatus === "em distribuição" ? "Em Distribuição" :
-                         n.orderStatus === "entregue" ? "Entregue" : "Cancelada"}
-                      </span>
+                      {n.type === "delay" ? (
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                          fontSize: "0.7rem", fontWeight: 600, padding: "2px 7px", borderRadius: 6,
+                          background: "rgba(220,100,0,0.1)", color: "#b85000",
+                        }}>
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <circle cx="5" cy="5" r="4" stroke="currentColor" strokeWidth="1"/>
+                            <path d="M5 3v2.5l1.5 1" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+                          </svg>
+                          Atraso
+                        </span>
+                      ) : n.type === "reschedule" ? (
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                          fontSize: "0.7rem", fontWeight: 600, padding: "2px 7px", borderRadius: 6,
+                          background: "rgba(80,80,200,0.1)", color: "#3030a0",
+                        }}>
+                          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                            <rect x="0.5" y="1.5" width="9" height="8" rx="1" stroke="currentColor" strokeWidth="1"/>
+                            <path d="M0.5 4h9M3 0.5v2M7 0.5v2" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+                          </svg>
+                          Reagendamento
+                          {n.newExpectedDate && (
+                            <span style={{ fontWeight: 400, opacity: 0.8 }}>
+                              {" → "}{new Date(n.newExpectedDate).toLocaleDateString("pt-PT")}
+                            </span>
+                          )}
+                        </span>
+                      ) : n.orderStatus ? (
+                        <span className={`badge ${
+                          n.orderStatus === "entregue" ? "badge-ativo" :
+                          n.orderStatus === "em distribuição" ? "badge-empresa" :
+                          n.orderStatus === "cancelada" ? "badge-cancelada" :
+                          "badge-particular"
+                        }`} style={{ fontSize: "0.7rem" }}>
+                          {n.orderStatus === "pendente" ? "Pendente" :
+                           n.orderStatus === "em distribuição" ? "Em Distribuição" :
+                           n.orderStatus === "entregue" ? "Entregue" : "Cancelada"}
+                        </span>
+                      ) : null}
                     </td>
                     <td style={{ color: "var(--foreground-secondary)", fontSize: "0.8125rem", maxWidth: 300 }}>
                       {n.message}
