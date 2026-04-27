@@ -70,6 +70,17 @@ export default function RootLayout({
                 Encomendas
               </Link>
               <Link
+                href="/dispatch"
+                className="btn-ghost"
+                style={{ fontSize: '0.8125rem' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 4 }}>
+                  <path d="M2 4h4v4H2V4zM10 4h4v4h-4V4zM6 10h4v4H6v-4z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/>
+                  <path d="M4 8v2H6M12 8v4h-2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Despacho
+              </Link>
+              <Link
                 href="/couriers"
                 className="btn-ghost"
                 style={{ fontSize: '0.8125rem' }}

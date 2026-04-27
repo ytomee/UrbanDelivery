@@ -3,13 +3,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { Order } from "../types/order";
 import { Customer } from "../types/customer";
+import { Courier } from "../types/courier";
 import { getOrders, deleteOrder } from "../lib/orders";
 import { getCustomers } from "../lib/customers";
+import { getCouriers } from "../lib/couriers";
 import OrderForm from "./order-form";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [customers, setCustomers] = useState<Record<string, Customer>>({});
+  const [couriersMap, setCouriersMap] = useState<Record<string, Courier>>({});
   const [showForm, setShowForm] = useState(false);
 
   const load = useCallback(() => {
@@ -19,6 +22,11 @@ export default function OrdersPage() {
       custMap[c.id] = c;
     });
     setCustomers(custMap);
+    const courMap: Record<string, Courier> = {};
+    getCouriers().forEach((c) => {
+      courMap[c.id] = c;
+    });
+    setCouriersMap(courMap);
   }, []);
 
   useEffect(() => {
@@ -93,6 +101,8 @@ export default function OrdersPage() {
                   <th>Cliente</th>
                   <th>Artigos</th>
                   <th>Data Prevista</th>
+                  <th>Estado</th>
+                  <th>Estafeta</th>
                   <th style={{ width: 80 }}></th>
                 </tr>
               </thead>
@@ -108,6 +118,22 @@ export default function OrdersPage() {
                     <td style={{ color: 'var(--foreground-secondary)' }}>{o.articles}</td>
                     <td style={{ color: 'var(--foreground-secondary)' }}>
                       {new Date(o.expectedDate).toLocaleDateString('pt-PT')}
+                    </td>
+                    <td>
+                      <span className={`badge ${
+                        o.status === "entregue" ? "badge-ativo" :
+                        o.status === "em distribuição" ? "badge-empresa" :
+                        o.status === "cancelada" ? "badge-manutencao" :
+                        "badge-particular"
+                      }`}>
+                        {o.status === "em distribuição" ? "Em Distribuição" :
+                         o.status === "entregue" ? "Entregue" :
+                         o.status === "cancelada" ? "Cancelada" :
+                         "Pendente"}
+                      </span>
+                    </td>
+                    <td style={{ color: 'var(--foreground-secondary)' }}>
+                      {o.courierId ? couriersMap[o.courierId]?.name || "—" : "—"}
                     </td>
                     <td>
                       <button
