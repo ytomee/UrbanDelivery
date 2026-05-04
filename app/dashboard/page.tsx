@@ -476,6 +476,37 @@ export default function DashboardPage() {
     );
   };
 
+  const exportToCSV = () => {
+    if (orders.length === 0) {
+      alert("Não há dados para exportar.");
+      return;
+    }
+    
+    const headers = ["ID Encomenda", "Estado", "Data Criação", "Data Prevista", "Cliente ID", "Estafeta ID"];
+    const rows = orders.map(o => [
+      o.id,
+      o.status,
+      new Date(o.createdAt).toLocaleDateString("pt-PT"),
+      new Date(o.expectedDate).toLocaleDateString("pt-PT"),
+      o.customerId,
+      o.courierId || ""
+    ]);
+    
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(r => r.join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `relatorio_entregas_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Max value for scaling the SVG
   const maxVal = Math.max(...chartData.map(d => d.value), 1); // at least 1 to avoid div by zero
 
@@ -570,6 +601,16 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[var(--yale)]">Painel de Gestor</h1>
           <p className="text-muted mt-1">Acompanhe o volume operacional e a qualidade de serviço da plataforma.</p>
+        </div>
+        <div className="flex gap-2 print:hidden">
+          <button onClick={exportToCSV} className="btn btn-secondary text-sm px-4 py-2 flex items-center gap-2 bg-white shadow-sm border border-[var(--border)] rounded-lg hover:bg-gray-50 transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Exportar CSV
+          </button>
+          <button onClick={() => window.print()} className="btn btn-secondary text-sm px-4 py-2 flex items-center gap-2 bg-white shadow-sm border border-[var(--border)] rounded-lg hover:bg-gray-50 transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Exportar PDF
+          </button>
         </div>
       </div>
 
