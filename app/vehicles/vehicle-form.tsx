@@ -14,6 +14,9 @@ export default function VehicleForm({ onSaved, onCancel }: VehicleFormProps) {
   const [type, setType] = useState<VehicleType | "">("");
   const [capacity, setCapacity] = useState("");
   const [status, setStatus] = useState<VehicleStatus>("ativo");
+  const [currentMileage, setCurrentMileage] = useState("");
+  const [maintenanceMileageLimit, setMaintenanceMileageLimit] = useState("");
+  const [nextMaintenanceDate, setNextMaintenanceDate] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function validate(): boolean {
@@ -25,6 +28,11 @@ export default function VehicleForm({ onSaved, onCancel }: VehicleFormProps) {
     if (!capacity.trim()) newErrors.capacity = "Capacidade é obrigatória";
     else if (isNaN(Number(capacity)) || Number(capacity) <= 0)
       newErrors.capacity = "Capacidade deve ser um número positivo";
+
+    if (currentMileage && isNaN(Number(currentMileage)))
+      newErrors.currentMileage = "Deve ser um número";
+    if (maintenanceMileageLimit && isNaN(Number(maintenanceMileageLimit)))
+      newErrors.maintenanceMileageLimit = "Deve ser um número";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -39,6 +47,9 @@ export default function VehicleForm({ onSaved, onCancel }: VehicleFormProps) {
       type: type as VehicleType,
       capacity: Number(capacity),
       status,
+      currentMileage: currentMileage ? Number(currentMileage) : undefined,
+      maintenanceMileageLimit: maintenanceMileageLimit ? Number(maintenanceMileageLimit) : undefined,
+      nextMaintenanceDate: nextMaintenanceDate || undefined,
     });
     onSaved();
   }
@@ -109,6 +120,54 @@ export default function VehicleForm({ onSaved, onCancel }: VehicleFormProps) {
             <option value="ativo">Ativo</option>
             <option value="em manutenção">Em Manutenção</option>
           </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 border-t border-[var(--border)] pt-5">
+        <div>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Quilómetros Atuais
+          </label>
+          <input
+            className="input-field"
+            type="number"
+            min="0"
+            value={currentMileage}
+            onChange={(e) => setCurrentMileage(e.target.value)}
+            placeholder="Ex: 15000"
+          />
+          {errors.currentMileage && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{errors.currentMileage}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Limite para Manutenção (km)
+          </label>
+          <input
+            className="input-field"
+            type="number"
+            min="0"
+            value={maintenanceMileageLimit}
+            onChange={(e) => setMaintenanceMileageLimit(e.target.value)}
+            placeholder="Ex: 20000"
+          />
+          {errors.maintenanceMileageLimit && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--danger)' }}>{errors.maintenanceMileageLimit}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--foreground-secondary)' }}>
+            Data Próxima Manutenção
+          </label>
+          <input
+            className="input-field"
+            type="date"
+            value={nextMaintenanceDate}
+            onChange={(e) => setNextMaintenanceDate(e.target.value)}
+          />
         </div>
       </div>
 

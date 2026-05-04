@@ -9,4 +9,7 @@ export interface Vehicle {
   capacity: number;
   status: VehicleStatus;
   createdAt: string;
+  currentMileage?: number;
+  maintenanceMileageLimit?: number;
+  nextMaintenanceDate?: string;
 }

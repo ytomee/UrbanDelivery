@@ -7,6 +7,8 @@ import { Address } from "../types/address";
 import { getOrders } from "../lib/orders";
 import { getCouriers } from "../lib/couriers";
 import { getAllAddresses } from "../lib/addresses";
+import { Vehicle } from "../types/vehicle";
+import { getVehicles } from "../lib/vehicles";
 
 type Period = "day" | "week" | "month";
 
@@ -19,12 +21,14 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [couriers, setCouriers] = useState<Courier[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [period, setPeriod] = useState<Period>("day");
   
   useEffect(() => {
     setOrders(getOrders());
     setCouriers(getCouriers());
     setAddresses(getAllAddresses());
+    setVehicles(getVehicles());
   }, []);
 
   const chartData = useMemo(() => {
@@ -386,6 +390,92 @@ export default function DashboardPage() {
     );
   };
 
+  const maintenanceVehicles = useMemo(() => {
+    const now = new Date();
+    return vehicles.filter(v => {
+      // Já está em manutenção
+      if (v.status === "em manutenção") return true;
+
+      // Limite de quilómetros atingido
+      if (v.currentMileage !== undefined && v.maintenanceMileageLimit !== undefined) {
+        if (v.currentMileage >= v.maintenanceMileageLimit) return true;
+      }
+
+      // Data de manutenção atingida
+      if (v.nextMaintenanceDate) {
+        const maintDate = new Date(v.nextMaintenanceDate);
+        if (maintDate <= now) return true;
+      }
+
+      return false;
+    });
+  }, [vehicles]);
+
+  const renderMaintenanceWidget = () => {
+    return (
+      <div className="glass-card p-6 flex flex-col mt-6 border-l-4" style={{ borderRadius: '1.5rem', borderLeftColor: '#f97316' }}>
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1 flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              Alertas de Manutenção Preventiva
+            </h2>
+            <p className="text-sm text-muted">Veículos que requerem atenção (limite de km ou data atingidos).</p>
+          </div>
+          {maintenanceVehicles.length > 0 && (
+            <span className="flex items-center gap-2 text-xs font-medium bg-orange-100 text-orange-600 px-3 py-1.5 rounded-full w-fit">
+              {maintenanceVehicles.length} veículo(s) pendente(s)
+            </span>
+          )}
+        </div>
+        
+        {maintenanceVehicles.length === 0 ? (
+          <div className="p-4 text-center text-sm text-muted bg-[var(--background)] rounded-xl border border-[var(--border)]">
+            A frota está em dia. Nenhum veículo necessita de manutenção de momento.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="data-table w-full text-sm text-left">
+              <thead>
+                <tr className="border-b border-[var(--border)] text-muted">
+                  <th className="pb-2 font-medium">Matrícula</th>
+                  <th className="pb-2 font-medium">Tipo</th>
+                  <th className="pb-2 font-medium">Estado</th>
+                  <th className="pb-2 font-medium">Motivo do Alerta</th>
+                </tr>
+              </thead>
+              <tbody>
+                {maintenanceVehicles.map(v => {
+                  const kmAlert = v.currentMileage !== undefined && v.maintenanceMileageLimit !== undefined && v.currentMileage >= v.maintenanceMileageLimit;
+                  const dateAlert = v.nextMaintenanceDate && new Date(v.nextMaintenanceDate) <= new Date();
+                  
+                  let reason = "";
+                  if (v.status === "em manutenção") reason = "Em manutenção ativa";
+                  else if (kmAlert && dateAlert) reason = "Limite de KM e Data atingidos";
+                  else if (kmAlert) reason = `Limite de KM atingido (${v.currentMileage} / ${v.maintenanceMileageLimit} km)`;
+                  else if (dateAlert) reason = `Data limite atingida (${new Date(v.nextMaintenanceDate!).toLocaleDateString("pt-PT")})`;
+
+                  return (
+                    <tr key={v.id} className="border-b border-[var(--border)] last:border-0">
+                      <td className="py-3 font-mono font-medium text-[var(--yale)]">{v.plate}</td>
+                      <td className="py-3 capitalize">{v.type}</td>
+                      <td className="py-3">
+                        <span className={`px-2 py-1 text-[10px] rounded uppercase font-bold tracking-wider ${v.status === 'em manutenção' ? 'bg-orange-100 text-orange-600' : 'bg-red-100 text-red-600'}`}>
+                          {v.status === "em manutenção" ? "Em Manutenção" : "Atenção Necessária"}
+                        </span>
+                      </td>
+                      <td className="py-3 text-muted">{reason}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Max value for scaling the SVG
   const maxVal = Math.max(...chartData.map(d => d.value), 1); // at least 1 to avoid div by zero
 
@@ -619,6 +709,9 @@ export default function DashboardPage() {
         </div>
         {renderDeliveryTimes()}
       </div>
+
+      {/* Alertas de Manutenção */}
+      {renderMaintenanceWidget()}
       
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes draw {
