@@ -8,4 +8,8 @@ export interface Customer {
   email: string;
   phone: string;
   createdAt: string;
+  communicationPreferences?: {
+    email: boolean;
+    sms: boolean;
+  };
 }

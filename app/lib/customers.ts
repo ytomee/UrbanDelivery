@@ -14,6 +14,7 @@ export function saveCustomer(customer: Omit<Customer, "id" | "createdAt">): Cust
     ...customer,
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
+    communicationPreferences: { email: true, sms: true }, // Default preferences
   };
   customers.push(newCustomer);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
@@ -23,4 +24,13 @@ export function saveCustomer(customer: Omit<Customer, "id" | "createdAt">): Cust
 export function deleteCustomer(id: string): void {
   const customers = getCustomers().filter((c) => c.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
+}
+
+export function updateCustomerPreferences(id: string, preferences: { email: boolean; sms: boolean }): void {
+  const customers = getCustomers();
+  const index = customers.findIndex((c) => c.id === id);
+  if (index !== -1) {
+    customers[index].communicationPreferences = preferences;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
+  }
 }

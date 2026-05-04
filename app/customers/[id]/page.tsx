@@ -6,7 +6,7 @@ import { Customer } from "../../types/customer";
 import { Address } from "../../types/address";
 import { Notification } from "../../types/notification";
 import { Order, OrderStatus } from "../../types/order";
-import { getCustomers } from "../../lib/customers";
+import { getCustomers, updateCustomerPreferences } from "../../lib/customers";
 import {
   addAddress,
   deleteAddress,
@@ -61,6 +61,14 @@ export default function CustomerDetailPage({
   useEffect(() => {
     load();
   }, [load]);
+
+  function handleTogglePreference(channel: 'email' | 'sms') {
+    if (!customer) return;
+    const currentPrefs = customer.communicationPreferences || { email: true, sms: true };
+    const newPrefs = { ...currentPrefs, [channel]: !currentPrefs[channel] };
+    updateCustomerPreferences(customer.id, newPrefs);
+    setCustomer({ ...customer, communicationPreferences: newPrefs });
+  }
 
   function handleAdd(data: {
     street: string;
@@ -192,10 +200,28 @@ export default function CustomerDetailPage({
                   {customer.phone}
                 </span>
               </div>
-            </div>
+          </div>
+          
+          <div className="flex flex-col gap-2 min-w-[200px] border-t md:border-t-0 md:border-l border-[var(--border)] pt-4 md:pt-0 md:pl-6 mt-4 md:mt-0">
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Preferências de Comunicação</h3>
+            <label className="flex items-center justify-between cursor-pointer group">
+              <span className="text-sm" style={{ color: 'var(--foreground-secondary)' }}>Receber por Email</span>
+              <div className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors ${customer.communicationPreferences?.email !== false ? 'bg-[var(--yale)]' : 'bg-[var(--border-strong)]'}`}>
+                <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform ${customer.communicationPreferences?.email !== false ? 'translate-x-4' : 'translate-x-0'}`} />
+              </div>
+              <input type="checkbox" className="hidden" checked={customer.communicationPreferences?.email !== false} onChange={() => handleTogglePreference('email')} />
+            </label>
+            <label className="flex items-center justify-between cursor-pointer group">
+              <span className="text-sm" style={{ color: 'var(--foreground-secondary)' }}>Receber por SMS</span>
+              <div className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors ${customer.communicationPreferences?.sms !== false ? 'bg-[var(--yale)]' : 'bg-[var(--border-strong)]'}`}>
+                <div className={`bg-white w-4 h-4 rounded-full shadow-sm transform transition-transform ${customer.communicationPreferences?.sms !== false ? 'translate-x-4' : 'translate-x-0'}`} />
+              </div>
+              <input type="checkbox" className="hidden" checked={customer.communicationPreferences?.sms !== false} onChange={() => handleTogglePreference('sms')} />
+            </label>
           </div>
         </div>
       </div>
+    </div>
 
       {/* Addresses section */}
       <div className="flex items-center justify-between mb-5">
