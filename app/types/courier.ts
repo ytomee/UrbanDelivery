@@ -6,4 +6,6 @@ export interface Courier {
   vehicle: string;
   preferredZone: string;
   createdAt: string;
+  isAvailable?: boolean;
+  schedule?: Record<string, { active: boolean, start: string, end: string }>;
 }

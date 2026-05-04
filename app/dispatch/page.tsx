@@ -9,6 +9,27 @@ import { getCouriers } from "../lib/couriers";
 import { getCustomers } from "../lib/customers";
 import { createStatusNotifications } from "../lib/notifications";
 
+const isCourierActive = (courier: Courier): boolean => {
+  if (courier.isAvailable === false) return false;
+  if (!courier.schedule) return true;
+  
+  const now = new Date();
+  const days = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+  const todayStr = days[now.getDay()];
+  const sched = courier.schedule[todayStr];
+  
+  if (!sched || !sched.active) return false;
+  
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const [startH, startM] = sched.start.split(":").map(Number);
+  const [endH, endM] = sched.end.split(":").map(Number);
+  
+  const startMins = startH * 60 + startM;
+  const endMins = endH * 60 + endM;
+  
+  return currentMinutes >= startMins && currentMinutes <= endMins;
+};
+
 export default function DispatchPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [couriers, setCouriers] = useState<Courier[]>([]);
@@ -40,6 +61,13 @@ export default function DispatchPage() {
 
   /* ── assignment logic ── */
   function assignOrder(orderId: string, courierId: string | null) {
+    if (courierId) {
+      const courier = couriers.find((c) => c.id === courierId);
+      if (courier && !isCourierActive(courier)) {
+        setToast(`Não é possível atribuir. O estafeta ${courier.name} encontra-se indisponível.`);
+        return;
+      }
+    }
     const order = orders.find((o) => o.id === orderId);
     const oldStatus = order?.status;
     assignCourier(orderId, courierId);
@@ -68,6 +96,13 @@ export default function DispatchPage() {
   }
 
   function handleDragOver(e: React.DragEvent, courierId: string | null) {
+    if (courierId && courierId !== "__unassigned") {
+      const courier = couriers.find((c) => c.id === courierId);
+      if (courier && !isCourierActive(courier)) {
+        e.dataTransfer.dropEffect = "none";
+        return;
+      }
+    }
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
     setDropTargetId(courierId);
@@ -191,15 +226,18 @@ export default function DispatchPage() {
                 onDrop={(e) => handleDrop(e, courier.id)}
               >
                 <div className="dispatch-column-header">
-                  <div className="dispatch-column-header-icon" style={{ background: 'var(--yale-faint)' }}>
+                  <div className="dispatch-column-header-icon" style={{ background: isCourierActive(courier) ? 'var(--yale-faint)' : 'rgba(239, 68, 68, 0.1)' }}>
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="7" cy="5" r="2.5" stroke="var(--yale)" strokeWidth="1.2"/>
-                      <path d="M3 12.5c0-2.5 2-4 4-4s4 1.5 4 4" stroke="var(--yale)" strokeWidth="1.2" strokeLinecap="round"/>
+                      <circle cx="7" cy="5" r="2.5" stroke={isCourierActive(courier) ? "var(--yale)" : "#ef4444"} strokeWidth="1.2"/>
+                      <path d="M3 12.5c0-2.5 2-4 4-4s4 1.5 4 4" stroke={isCourierActive(courier) ? "var(--yale)" : "#ef4444"} strokeWidth="1.2" strokeLinecap="round"/>
                     </svg>
                   </div>
-                  <div>
-                    <h3>{courier.name}</h3>
-                    <span className="dispatch-column-count">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <h3 style={{ margin: 0 }}>{courier.name}</h3>
+                      {!isCourierActive(courier) && <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-100 text-red-600 font-bold uppercase tracking-wider">Inativo</span>}
+                    </div>
+                    <span className="dispatch-column-count" style={{ marginTop: '0.1rem' }}>
                       {courierOrdersList.length} encomenda{courierOrdersList.length !== 1 ? "s" : ""}
                       {courier.preferredZone && ` · ${courier.preferredZone}`}
                     </span>
@@ -307,11 +345,14 @@ function OrderCard({
           onClick={(e) => e.stopPropagation()}
         >
           <option value="">Sem atribuição</option>
-          {couriers.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
+          {couriers.map((c) => {
+            const active = isCourierActive(c);
+            return (
+              <option key={c.id} value={c.id} disabled={!active}>
+                {c.name} {!active ? "(Indisponível)" : ""}
+              </option>
+            );
+          })}
         </select>
       </div>
     </div>

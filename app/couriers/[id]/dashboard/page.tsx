@@ -8,7 +8,7 @@ import { Courier } from "../../../types/courier";
 import { Address } from "../../../types/address";
 import { getOrders, updateOrderStatus } from "../../../lib/orders";
 import { getCustomers } from "../../../lib/customers";
-import { getCouriers } from "../../../lib/couriers";
+import { getCouriers, updateCourier } from "../../../lib/couriers";
 import { getAddressesByCustomer } from "../../../lib/addresses";
 import Link from "next/link";
 
@@ -78,6 +78,23 @@ export default function CourierDashboard() {
     }
   }
 
+  const handleToggleAvailable = () => {
+    if (!courier) return;
+    const newVal = !courier.isAvailable;
+    updateCourier(courier.id, { isAvailable: newVal });
+    setCourier({ ...courier, isAvailable: newVal });
+  };
+
+  const handleScheduleChange = (day: string, field: "active" | "start" | "end", value: any) => {
+    if (!courier || !courier.schedule) return;
+    const newSchedule = { 
+      ...courier.schedule, 
+      [day]: { ...courier.schedule[day], [field]: value } 
+    };
+    updateCourier(courier.id, { schedule: newSchedule });
+    setCourier({ ...courier, schedule: newSchedule });
+  };
+
   if (!courier) return <div className="p-8">A carregar...</div>;
 
   return (
@@ -92,6 +109,44 @@ export default function CourierDashboard() {
         </Link>
       </div>
 
+      {/* Settings Section */}
+      <div className="glass-card mb-8 p-6" style={{ borderRadius: '1.25rem' }}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-[var(--yale)]">Estado e Horários</h2>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <span className={`text-sm font-medium ${courier.isAvailable ? 'text-[var(--success)]' : 'text-muted'}`}>
+              {courier.isAvailable ? "Disponível para recolhas" : "Indisponível"}
+            </span>
+            <div className={`relative inline-block w-12 ml-2 align-middle select-none transition duration-200 ease-in`}>
+              <input type="checkbox" className="absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" style={{ top: 2, right: courier.isAvailable ? 2 : 26, borderColor: courier.isAvailable ? 'var(--success)' : 'var(--muted)', zIndex: 10, transition: 'right 0.2s ease-in' }} checked={courier.isAvailable || false} onChange={handleToggleAvailable}/>
+              <div className={`block overflow-hidden h-7 rounded-full cursor-pointer ${courier.isAvailable ? 'bg-[var(--success)] opacity-70' : 'bg-gray-300 opacity-60'}`}></div>
+            </div>
+          </label>
+        </div>
+
+        <div className="space-y-3">
+          {["seg", "ter", "qua", "qui", "sex", "sab", "dom"].map(day => {
+            const daysMap: Record<string, string> = { seg: "Segunda", ter: "Terça", qua: "Quarta", qui: "Quinta", sex: "Sexta", sab: "Sábado", dom: "Domingo" };
+            const sched = courier.schedule?.[day];
+            if (!sched) return null;
+            return (
+              <div key={day} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${sched.active ? 'border-[var(--yale-light)] bg-[rgba(13,59,102,0.05)]' : 'border-[var(--border)] bg-[var(--background)] opacity-70'}`}>
+                <div className="flex items-center gap-3">
+                  <input type="checkbox" checked={sched.active} onChange={(e) => handleScheduleChange(day, 'active', e.target.checked)} className="w-4 h-4 cursor-pointer accent-[var(--yale)] rounded" />
+                  <span className={`font-medium text-sm ${sched.active ? 'text-[var(--foreground)]' : 'text-muted'}`}>{daysMap[day]}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="time" disabled={!sched.active} value={sched.start} onChange={(e) => handleScheduleChange(day, 'start', e.target.value)} className="text-sm bg-transparent border-b border-[var(--border)] p-1 w-auto outline-none disabled:opacity-50 text-center" />
+                  <span className="text-muted text-xs">até</span>
+                  <input type="time" disabled={!sched.active} value={sched.end} onChange={(e) => handleScheduleChange(day, 'end', e.target.value)} className="text-sm bg-transparent border-b border-[var(--border)] p-1 w-auto outline-none disabled:opacity-50 text-center" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <h2 className="text-lg font-semibold text-[var(--yale)] mb-4">Encomendas Pendentes</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {orders.length === 0 ? (
           <div className="glass-card text-center p-8">
