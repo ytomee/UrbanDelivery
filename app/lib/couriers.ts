@@ -11,13 +11,13 @@ export function getCouriers(): Courier[] {
     ...c,
     isAvailable: c.isAvailable !== false,
     schedule: c.schedule || {
-      "seg": { active: true, start: "09:00", end: "18:00" },
-      "ter": { active: true, start: "09:00", end: "18:00" },
-      "qua": { active: true, start: "09:00", end: "18:00" },
-      "qui": { active: true, start: "09:00", end: "18:00" },
-      "sex": { active: true, start: "09:00", end: "18:00" },
-      "sab": { active: false, start: "09:00", end: "13:00" },
-      "dom": { active: false, start: "09:00", end: "13:00" },
+      "seg": { active: true, start: "08:00", end: "22:00" },
+      "ter": { active: true, start: "08:00", end: "22:00" },
+      "qua": { active: true, start: "08:00", end: "22:00" },
+      "qui": { active: true, start: "08:00", end: "22:00" },
+      "sex": { active: true, start: "08:00", end: "22:00" },
+      "sab": { active: true, start: "09:00", end: "22:00" },
+      "dom": { active: true, start: "09:00", end: "22:00" },
     }
   }));
 }

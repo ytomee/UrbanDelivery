@@ -183,11 +183,9 @@ body::before {
 .btn-primary:hover {
   background: var(--yale-light);
   box-shadow: 0 2px 6px rgba(13, 59, 102, 0.2);
-  transform: translateY(-1px);
 }
 
 .btn-primary:active {
-  transform: translateY(0);
   box-shadow: 0 1px 2px rgba(13, 59, 102, 0.15);
 }
 
@@ -204,6 +202,9 @@ body::before {
 }
 
 .btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   color: var(--foreground-secondary);
   padding: 0 12px;
@@ -216,6 +217,9 @@ body::before {
 }
 
 .btn-danger-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   color: var(--muted);
   padding: 0 12px;
@@ -371,12 +375,17 @@ body::before {
 /* ── Animations ── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes scaleUp {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
 }
 
 .animate-fade-in {
@@ -486,10 +495,9 @@ select.input-field {
 
 /* ── Dispatch board ── */
 .dispatch-board {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
-  align-items: start;
+  columns: 3 300px;
+  column-gap: 16px;
+  display: block;
 }
 
 .dispatch-column {
@@ -501,6 +509,8 @@ select.input-field {
   box-shadow: var(--glass-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
+  break-inside: avoid-column;
+  margin-bottom: 16px;
 }
 
 .dispatch-column-drop-active {
@@ -696,6 +706,9 @@ select.input-field {
   max-width: 480px;
   padding: 0;
   overflow: hidden;
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .modal-header {
@@ -747,11 +760,10 @@ select.input-field {
 .btn-danger:hover {
   background: #a93226;
   box-shadow: 0 2px 6px rgba(192, 57, 43, 0.25);
-  transform: translateY(-1px);
 }
 
 .btn-danger:active {
-  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(192, 57, 43, 0.15);
 }
 
 /* ── Cancelled row ── */

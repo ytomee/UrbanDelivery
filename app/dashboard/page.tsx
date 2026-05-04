@@ -23,47 +23,52 @@ export default function DashboardPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [period, setPeriod] = useState<Period>("day");
-  
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
     setOrders(getOrders());
     setCouriers(getCouriers());
     setAddresses(getAllAddresses());
     setVehicles(getVehicles());
+
+    // Pequeno atraso para a animação de altura funcionar corretamente no mount
+    const timer = setTimeout(() => setMounted(true), 50);
+    return () => clearTimeout(timer);
   }, []);
 
   const chartData = useMemo(() => {
     // Generate data based on period
     const now = new Date();
     const data: ChartDataPoint[] = [];
-    
+
     // helper to zero-out time
     const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    
+
     if (period === "day") {
-      // Last 7 days
-      for (let i = 6; i >= 0; i--) {
+      // Last 5 days
+      for (let i = 4; i >= 0; i--) {
         const d = new Date(now);
         d.setDate(d.getDate() - i);
-        const label = d.toLocaleDateString("pt-PT", { weekday: 'short', day: 'numeric' });
+        const label = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
         data.push({ label, value: 0 });
       }
-      
+
       orders.forEach(o => {
         const d = new Date(o.createdAt);
         const diffTime = startOfDay(now).getTime() - startOfDay(d).getTime();
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        if (diffDays >= 0 && diffDays < 7) {
-          const idx = 6 - diffDays;
+        if (diffDays >= 0 && diffDays < 5) {
+          const idx = 4 - diffDays;
           if (data[idx]) data[idx].value++;
         }
       });
-      
+
     } else if (period === "week") {
       // Last 4 weeks
       for (let i = 3; i >= 0; i--) {
         data.push({ label: `Semana ${4 - i}`, value: 0 });
       }
-      
+
       orders.forEach(o => {
         const d = new Date(o.createdAt);
         const diffTime = startOfDay(now).getTime() - startOfDay(d).getTime();
@@ -74,7 +79,7 @@ export default function DashboardPage() {
           if (data[idx]) data[idx].value++;
         }
       });
-      
+
     } else if (period === "month") {
       // Last 6 months
       for (let i = 5; i >= 0; i--) {
@@ -82,7 +87,7 @@ export default function DashboardPage() {
         const label = d.toLocaleDateString("pt-PT", { month: 'short' });
         data.push({ label, value: 0 });
       }
-      
+
       orders.forEach(o => {
         const d = new Date(o.createdAt);
         const diffMonths = (now.getFullYear() - d.getFullYear()) * 12 + now.getMonth() - d.getMonth();
@@ -110,10 +115,10 @@ export default function DashboardPage() {
       const lastEntry = history[history.length - 1];
       const deliveredAt = lastEntry ? new Date(lastEntry.changedAt) : new Date(o.createdAt);
       const dDate = new Date(deliveredAt.getFullYear(), deliveredAt.getMonth(), deliveredAt.getDate());
-      
+
       const eDateOriginal = new Date(o.expectedDate);
       const eDate = isNaN(eDateOriginal.getTime()) ? dDate : new Date(eDateOriginal.getFullYear(), eDateOriginal.getMonth(), eDateOriginal.getDate());
-      
+
       if (dDate <= eDate) {
         onTimeCount++;
       }
@@ -133,12 +138,12 @@ export default function DashboardPage() {
     if (rate >= 70) return "#eab308"; // amarelo
     return "#ef4444"; // vermelho
   };
-  
+
   const getRateBg = (rate: number) => {
     if (!onTimeMetrics.hasData) return "rgba(0,0,0,0.05)";
-    if (rate > 90) return "rgba(34, 197, 94, 0.1)"; 
-    if (rate >= 70) return "rgba(234, 179, 8, 0.1)"; 
-    return "rgba(239, 68, 68, 0.1)"; 
+    if (rate > 90) return "rgba(34, 197, 94, 0.1)";
+    if (rate >= 70) return "rgba(234, 179, 8, 0.1)";
+    return "rgba(239, 68, 68, 0.1)";
   };
 
   const statusDistribution = useMemo(() => {
@@ -154,7 +159,7 @@ export default function DashboardPage() {
         counts[o.status]++;
       }
     });
-    
+
     return [
       { label: "Pendente", value: counts["pendente"], color: "var(--foreground-secondary)" },
       { label: "Em Distrib.", value: counts["em distribuição"], color: "var(--yale-light, #3b82f6)" },
@@ -166,32 +171,31 @@ export default function DashboardPage() {
 
   const renderBarChart = () => {
     const maxVal = Math.max(...statusDistribution.map(d => d.value), 1);
-    const chartHeight = 160; 
-    
+    const chartHeight = 160;
+
     return (
-      <div className="w-full flex items-end justify-around h-48 mt-4 pt-4 border-t border-[var(--border)]">
+      <div className="w-full flex items-end justify-around h-48 mt-4 border-b border-[var(--border)] pb-2 relative">
         {statusDistribution.map((d, i) => {
           const barHeight = (d.value / maxVal) * chartHeight;
           return (
             <div key={i} className="flex flex-col items-center group w-full px-2">
-              <div className="relative flex flex-col justify-end w-full max-w-[60px] h-40 mb-3">
+              <div className="relative flex flex-col justify-end w-full max-w-[60px] h-40 mb-1">
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--foreground)] text-[var(--background)] text-xs font-bold py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap z-10 pointer-events-none drop-shadow-md">
                   {d.value}
                 </div>
-                
-                <div 
-                  className="w-full rounded-t-lg transition-all duration-300 ease-out group-hover:brightness-110"
-                  style={{ 
-                    height: `${Math.max(barHeight, 4)}px`, 
+
+                <div
+                  className="w-full rounded-t-lg transition-all ease-out group-hover:brightness-110"
+                  style={{
+                    height: mounted ? `${Math.max(barHeight, 4)}px` : '0px',
                     backgroundColor: d.color,
                     opacity: 0.9,
-                    transformOrigin: 'bottom',
-                    animation: `scaleUp 0.8s ease-out forwards ${i * 0.1}s`,
-                    transform: 'scaleY(0)'
+                    transitionDuration: '800ms',
+                    transitionDelay: `${i * 50}ms`
                   }}
                 />
               </div>
-              <span className="text-xs md:text-sm font-medium text-muted truncate max-w-full" title={d.label}>
+              <span className="text-xs md:text-sm font-medium text-muted truncate max-w-full absolute -bottom-6">
                 {d.label}
               </span>
             </div>
@@ -243,43 +247,44 @@ export default function DashboardPage() {
         isOverloaded,
         color: isOverloaded ? "#ef4444" : "var(--yale-light, #3b82f6)"
       };
-    }).sort((a, b) => b.value - a.value); 
+    }).sort((a, b) => b.value - a.value);
   }, [orders, couriers, period]);
 
   const renderWorkloadChart = () => {
     if (workloadData.length === 0) return <div className="p-4 text-center text-sm text-muted mt-4">Nenhum estafeta registado.</div>;
     const maxVal = Math.max(...workloadData.map(d => d.value), 1);
-    const chartHeight = 160; 
-    
+    const chartHeight = 160;
+
     return (
-      <div className="w-full flex items-end justify-around h-48 mt-4 pt-4 border-t border-[var(--border)] gap-2 overflow-x-auto">
+      <div className="w-full flex flex-col mt-3 pt-4 border-t border-[var(--border)] gap-4 overflow-y-auto pr-2" style={{ maxHeight: '220px', scrollbarWidth: 'thin' }}>
         {workloadData.map((d, i) => {
-          const barHeight = (d.value / maxVal) * chartHeight;
+          const barWidth = (d.value / maxVal) * 100;
           return (
-            <div key={d.id} className="flex flex-col items-center group min-w-[50px] px-1">
-              <div className="relative flex flex-col justify-end w-full max-w-[50px] h-40 mb-3">
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--foreground)] text-[var(--background)] text-xs font-bold py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap z-10 pointer-events-none drop-shadow-md">
-                  {d.value} enc.
-                </div>
-                
-                <div 
-                  className="w-full rounded-t-lg transition-all duration-300 ease-out group-hover:brightness-110"
-                  style={{ 
-                    height: `${Math.max(barHeight, 4)}px`, 
+            <div key={d.id} className="flex items-center group w-full">
+              <div className="w-24 shrink-0 flex flex-col justify-center">
+                <span className={`text-sm font-medium truncate w-full ${d.isOverloaded ? 'text-[#ef4444] font-bold' : 'text-[var(--foreground)]'}`} title={d.fullName}>
+                  {d.label}
+                </span>
+                {d.isOverloaded && (
+                  <span className="text-[9px] text-white bg-[#ef4444] px-1 rounded uppercase w-fit leading-none py-0.5 mt-0.5 tracking-wider">Alto</span>
+                )}
+              </div>
+              <div className="flex-1 h-7 bg-[rgba(13,59,102,0.04)] rounded-r-lg ml-3 relative flex items-center">
+                <div
+                  className="h-full rounded-r-lg transition-all ease-out group-hover:brightness-110 flex items-center justify-end pr-3"
+                  style={{
+                    width: mounted ? `${Math.max(barWidth, 2)}%` : '0%',
                     backgroundColor: d.color,
                     opacity: 0.9,
-                    transformOrigin: 'bottom',
-                    animation: `scaleUp 0.8s ease-out forwards ${i * 0.1}s`,
-                    transform: 'scaleY(0)'
+                    transitionDuration: '800ms',
+                    transitionDelay: `${i * 30}ms`
                   }}
-                />
+                >
+                  <span className="text-[11px] font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    {d.value}
+                  </span>
+                </div>
               </div>
-              <span className={`text-xs md:text-sm font-medium truncate max-w-full ${d.isOverloaded ? 'text-[#ef4444] font-bold' : 'text-muted'}`} title={d.fullName}>
-                {d.label}
-              </span>
-              {d.isOverloaded && (
-                <span className="text-[9px] text-white bg-[#ef4444] px-1 rounded uppercase mt-1">Alto</span>
-              )}
             </div>
           );
         })}
@@ -289,7 +294,7 @@ export default function DashboardPage() {
 
   const deliveryTimeData = useMemo(() => {
     const addressMap = new Map(addresses.map(a => [a.id, a]));
-    
+
     const now = new Date();
     const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
@@ -310,7 +315,7 @@ export default function DashboardPage() {
     });
 
     const zoneStats: Record<string, { totalMs: number; count: number }> = {};
-    
+
     deliveredOrders.forEach(o => {
       const history = o.statusHistory || [];
       const entregueEntry = history.find(h => h.status === "entregue");
@@ -319,7 +324,7 @@ export default function DashboardPage() {
       const startEntry = history.find(h => h.status === "em distribuição");
       const startTime = startEntry ? new Date(startEntry.changedAt).getTime() : new Date(o.createdAt).getTime();
       const endTime = new Date(entregueEntry.changedAt).getTime();
-      
+
       const durationMs = endTime - startTime;
       if (durationMs < 0) return;
 
@@ -356,15 +361,15 @@ export default function DashboardPage() {
     if (deliveryTimeData.length === 0) {
       return <div className="p-4 text-center text-sm text-muted mt-4">Sem dados de entrega suficientes para o período.</div>;
     }
-    
+
     const maxMs = Math.max(...deliveryTimeData.map(d => d.avgMs));
-    
+
     return (
       <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
         {deliveryTimeData.map((d, i) => {
-          const widthPct = Math.max((d.avgMs / maxMs) * 100, 5); 
+          const widthPct = Math.max((d.avgMs / maxMs) * 100, 5);
           const isBottleneck = i === 0 && d.avgMs > 1000 * 60 * 60; // Highlights the worst one if it takes > 1 hour
-          
+
           return (
             <div key={d.zone} className="flex flex-col gap-1.5">
               <div className="flex justify-between items-center text-sm">
@@ -375,10 +380,10 @@ export default function DashboardPage() {
                 <span className="text-muted font-mono">{d.avgFormatted} <span className="text-[10px] opacity-70">({d.count} enc.)</span></span>
               </div>
               <div className="w-full bg-[var(--border)] h-2 rounded-full overflow-hidden">
-                <div 
+                <div
                   className={`h-full rounded-full transition-all duration-1000 ease-out`}
-                  style={{ 
-                    width: `${widthPct}%`, 
+                  style={{
+                    width: `${widthPct}%`,
                     backgroundColor: isBottleneck ? '#f97316' : 'var(--yale)',
                   }}
                 />
@@ -428,7 +433,7 @@ export default function DashboardPage() {
             </span>
           )}
         </div>
-        
+
         {maintenanceVehicles.length === 0 ? (
           <div className="p-4 text-center text-sm text-muted bg-[var(--background)] rounded-xl border border-[var(--border)]">
             A frota está em dia. Nenhum veículo necessita de manutenção de momento.
@@ -448,7 +453,7 @@ export default function DashboardPage() {
                 {maintenanceVehicles.map(v => {
                   const kmAlert = v.currentMileage !== undefined && v.maintenanceMileageLimit !== undefined && v.currentMileage >= v.maintenanceMileageLimit;
                   const dateAlert = v.nextMaintenanceDate && new Date(v.nextMaintenanceDate) <= new Date();
-                  
+
                   let reason = "";
                   if (v.status === "em manutenção") reason = "Em manutenção ativa";
                   else if (kmAlert && dateAlert) reason = "Limite de KM e Data atingidos";
@@ -481,7 +486,7 @@ export default function DashboardPage() {
       alert("Não há dados para exportar.");
       return;
     }
-    
+
     const headers = ["ID Encomenda", "Estado", "Data Criação", "Data Prevista", "Cliente ID", "Estafeta ID"];
     const rows = orders.map(o => [
       o.id,
@@ -491,12 +496,12 @@ export default function DashboardPage() {
       o.customerId,
       o.courierId || ""
     ]);
-    
+
     const csvContent = [
-      headers.join(","),
-      ...rows.map(r => r.join(","))
+      headers.map(h => `"${h}"`).join(";"),
+      ...rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(";"))
     ].join("\n");
-    
+
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -510,30 +515,28 @@ export default function DashboardPage() {
   // Max value for scaling the SVG
   const maxVal = Math.max(...chartData.map(d => d.value), 1); // at least 1 to avoid div by zero
 
-  // Building SVG Path
   const renderLine = () => {
     if (chartData.length === 0) return null;
-    const width = 100;
-    const height = 100; // viewbox 0 0 100 100
-    
-    // We have chartData.length points.
-    // x spacing:
+    const width = 800;
+    const height = 200;
+
     const stepX = width / Math.max(chartData.length - 1, 1);
-    
+
     const points = chartData.map((d, i) => {
       const x = i * stepX;
-      // y is inverted because SVG y goes down
-      const y = height - (d.value / maxVal) * height * 0.8 - 10; // 0.8 scale to leave top padding
-      return `${x},${y}`;
+      // top margin for text, bottom margin for line
+      const topMargin = 20;
+      const bottomMargin = 10;
+      const usableHeight = height - topMargin - bottomMargin;
+      const y = height - bottomMargin - (d.value / maxVal) * usableHeight;
+      return { x, y, value: d.value };
     });
 
-    const dPath = `M ${points.join(' L ')}`;
-
-    // Optional: filled area below line
-    const areaPath = `${dPath} L 100,100 L 0,100 Z`;
+    const dPath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
+    const areaPath = `${dPath} L ${width},${height} L 0,${height} Z`;
 
     return (
-      <svg viewBox="0 0 100 100" className="w-full h-40 overflow-visible" preserveAspectRatio="none">
+      <svg viewBox="0 0 800 200" className="w-full h-auto overflow-visible mt-2">
         <defs>
           <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="var(--yale)" stopOpacity="0.5" />
@@ -552,45 +555,40 @@ export default function DashboardPage() {
           d={dPath}
           fill="none"
           stroke="url(#lineGrad)"
-          strokeWidth="3"
+          strokeWidth="4"
           strokeLinecap="round"
           strokeLinejoin="round"
           className="animate-draw-line"
           style={{
-            strokeDasharray: '300',
+            strokeDasharray: '1000',
             strokeDashoffset: '0',
             animation: 'draw 1.5s ease-out forwards'
           }}
         />
-        {/* Points */}
-        {chartData.map((d, i) => {
-          const x = i * stepX;
-          const y = height - (d.value / maxVal) * height * 0.8 - 10;
-          return (
-            <g key={i} className="group cursor-default">
-              <circle
-                cx={x}
-                cy={y}
-                r="3"
-                fill="#FAF0CA"
-                stroke="var(--yale)"
-                strokeWidth="1.5"
-                className="transition-all duration-300 group-hover:r-4 group-hover:stroke-2"
-              />
-              <text
-                x={x}
-                y={y - 8}
-                textAnchor="middle"
-                fontSize="6"
-                fill="var(--yale)"
-                fontWeight="bold"
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-              >
-                {d.value}
-              </text>
-            </g>
-          );
-        })}
+        {points.map((p, i) => (
+          <g key={i} className="group cursor-default">
+            <circle
+              cx={p.x}
+              cy={p.y}
+              r="6"
+              fill="#FAF0CA"
+              stroke="var(--yale)"
+              strokeWidth="3"
+              className="transition-all duration-300 group-hover:r-8"
+            />
+            <text
+              x={p.x}
+              y={p.y - 14}
+              textAnchor="middle"
+              fontSize="12"
+              fill="var(--yale)"
+              fontWeight="bold"
+              className="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            >
+              {p.value}
+            </text>
+          </g>
+        ))}
       </svg>
     );
   };
@@ -614,27 +612,26 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 print:hidden">
         {/* Gráfico de Volume - Coluna Dupla */}
         <div className="lg:col-span-2 glass-card p-6 flex flex-col" style={{ borderRadius: '1.5rem' }}>
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
             <div>
               <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Volume de Entregas</h2>
               <p className="text-sm text-muted">Total de encomendas registadas no período selecionado.</p>
             </div>
-            
+
             <div className="flex bg-[var(--background)] rounded-full p-1 border border-[var(--border)] shadow-sm">
               {(["day", "week", "month"] as const).map(p => (
                 <button
                   key={p}
                   onClick={() => setPeriod(p)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                    period === p 
-                      ? 'bg-[var(--yale)] text-[#FAF0CA] shadow-md' 
-                      : 'text-muted hover:text-[var(--foreground)]'
-                  }`}
+                  className={`px-4 py-1.5 rounded-full text-[10px] font-medium transition-colors ${period === p
+                    ? 'bg-[var(--yale)] text-[#FAF0CA] shadow-md'
+                    : 'text-muted hover:text-[var(--foreground)]'
+                    }`}
                 >
-                  {p === "day" ? "Últimos 7 Dias" : p === "week" ? "Últimas 4 Semanas" : "Últimos 6 Meses"}
+                  {p === "day" ? "5 Dias" : p === "week" ? "4 Semanas" : "6 Meses"}
                 </button>
               ))}
             </div>
@@ -653,7 +650,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Linha de Tendência */}
-            <div className="flex-1 w-full flex flex-col justify-end h-full pt-4">
+            <div className="flex-1 w-full flex flex-col justify-end">
               <div className="relative w-full">
                 {renderLine()}
                 {/* X-axis labels */}
@@ -710,7 +707,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 print:hidden">
         {/* Estado das Encomendas */}
         <div className="glass-card p-6 flex flex-col" style={{ borderRadius: '1.5rem' }}>
           <div className="mb-2">
@@ -722,7 +719,7 @@ export default function DashboardPage() {
 
         {/* Carga de Trabalho */}
         <div className="glass-card p-6 flex flex-col" style={{ borderRadius: '1.5rem' }}>
-          <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Carga de Trabalho</h2>
               <p className="text-sm text-muted">Atribuições no período selecionado.</p>
@@ -753,17 +750,47 @@ export default function DashboardPage() {
 
       {/* Alertas de Manutenção */}
       {renderMaintenanceWidget()}
-      
-      <style dangerouslySetInnerHTML={{__html: `
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes draw {
           from { stroke-dashoffset: 300; }
           to { stroke-dashoffset: 0; }
         }
-        @keyframes scaleUp {
-          from { transform: scaleY(0); }
-          to { transform: scaleY(1); }
-        }
       `}} />
+      {/* Relatório de Impressão (Apenas visível em PDF) */}
+      <div className="hidden print:block mt-8 w-full">
+        <h2 className="text-2xl font-bold mb-4 border-b-2 border-black pb-2">Relatório Global de Entregas</h2>
+        <div className="mb-4 flex gap-8 text-sm">
+          <p><strong>Total de Registos:</strong> {orders.length}</p>
+          <p><strong>Taxa no Prazo Global:</strong> {onTimeMetrics.rate}%</p>
+          <p><strong>Data de Extração:</strong> {new Date().toLocaleDateString("pt-PT")}</p>
+        </div>
+        <table className="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr className="border-b border-gray-400 bg-gray-100">
+              <th className="py-2 px-2 font-semibold">ID</th>
+              <th className="py-2 px-2 font-semibold">Estado</th>
+              <th className="py-2 px-2 font-semibold">Data Criação</th>
+              <th className="py-2 px-2 font-semibold">Data Prevista</th>
+              <th className="py-2 px-2 font-semibold">Cliente ID</th>
+              <th className="py-2 px-2 font-semibold">Estafeta ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map(o => (
+              <tr key={o.id} className="border-b border-gray-200">
+                <td className="py-1 px-2 font-mono">{o.id.substring(0, 8)}</td>
+                <td className="py-1 px-2">{o.status}</td>
+                <td className="py-1 px-2">{new Date(o.createdAt).toLocaleDateString("pt-PT")}</td>
+                <td className="py-1 px-2">{new Date(o.expectedDate).toLocaleDateString("pt-PT")}</td>
+                <td className="py-1 px-2">{o.customerId}</td>
+                <td className="py-1 px-2">{o.courierId || "N/A"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

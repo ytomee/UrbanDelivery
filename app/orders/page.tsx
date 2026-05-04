@@ -183,7 +183,8 @@ export default function OrdersPage() {
     : [];
 
   return (
-    <div className="animate-fade-in">
+    <>
+
 
       {/* Cancel modal */}
       {cancellingOrderId && (
@@ -233,7 +234,7 @@ export default function OrdersPage() {
 
       {/* Status update modal */}
       {statusOrderId && statusOrder && (
-        <div className="modal-overlay" onClick={closeStatusModal}>
+        <div className="modal-overlay" onClick={closeStatusModal} style={{ background: 'transparent', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
           <div className="modal-content glass-card-elevated animate-slide-down" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-header-icon">
@@ -393,7 +394,7 @@ export default function OrdersPage() {
 
       {/* Alert (delay / reschedule) modal */}
       {alertOrderId && (
-        <div className="modal-overlay" onClick={closeAlertModal}>
+        <div className="modal-overlay" onClick={closeAlertModal} style={{ background: 'transparent', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
           <div className="modal-content glass-card-elevated animate-slide-down" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-header-icon">
@@ -509,6 +510,7 @@ export default function OrdersPage() {
       )}
 
       {/* Page header */}
+      <div className="animate-fade-in">
       <div className="page-header">
         <div>
           <h1>Encomendas</h1>
@@ -552,7 +554,6 @@ export default function OrdersPage() {
                 <tr>
                   <th>ID</th>
                   <th>Cliente</th>
-                  <th>Artigos</th>
                   <th>Data Prevista</th>
                   <th>Estado</th>
                   <th>Estafeta</th>
@@ -566,7 +567,6 @@ export default function OrdersPage() {
                       #{o.id.substring(0, 8)}
                     </td>
                     <td className="font-medium">{customers[o.customerId]?.name || "Desconhecido"}</td>
-                    <td style={{ color: "var(--foreground-secondary)" }}>{o.articles}</td>
                     <td style={{ color: "var(--foreground-secondary)" }}>
                       {new Date(o.expectedDate).toLocaleDateString("pt-PT")}
                     </td>
@@ -600,12 +600,12 @@ export default function OrdersPage() {
                       {o.courierId ? couriersMap[o.courierId]?.name || "—" : "—"}
                     </td>
                     <td>
-                      <div className="flex gap-2" style={{ flexWrap: "wrap" }}>
+                      <div className="flex gap-2 items-center" style={{ flexWrap: "wrap", minWidth: "max-content" }}>
                         {VALID_TRANSITIONS[o.status].filter((s) => s !== "cancelada").length > 0 && (
                           <button
                             onClick={() => openStatusModal(o.id)}
                             className="btn btn-secondary"
-                            style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+                            style={{ height: "30px", fontSize: "0.75rem", padding: "0 12px" }}
                           >
                             Atualizar Estado
                           </button>
@@ -614,7 +614,7 @@ export default function OrdersPage() {
                           <button
                             onClick={() => openAlertModal(o.id)}
                             className="btn btn-secondary"
-                            style={{ fontSize: "0.75rem", padding: "4px 10px", display: "flex", alignItems: "center", gap: 5 }}
+                            style={{ height: "30px", fontSize: "0.75rem", padding: "0 12px", display: "inline-flex", alignItems: "center", gap: 5 }}
                           >
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                               <path d="M6 1.5L1 10.5h10L6 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
@@ -628,7 +628,7 @@ export default function OrdersPage() {
                           <button
                             onClick={() => openCancelModal(o.id)}
                             className="btn-danger-ghost"
-                            style={{ fontSize: "0.75rem" }}
+                            style={{ height: "30px", fontSize: "0.75rem", padding: "0 12px" }}
                           >
                             Cancelar
                           </button>
@@ -636,7 +636,7 @@ export default function OrdersPage() {
                         <button
                           onClick={() => handleDelete(o.id)}
                           className="btn-danger-ghost"
-                          style={{ fontSize: "0.75rem" }}
+                          style={{ height: "30px", fontSize: "0.75rem", padding: "0 12px" }}
                         >
                           Remover
                         </button>
@@ -649,6 +649,7 @@ export default function OrdersPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

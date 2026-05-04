@@ -113,13 +113,13 @@ export default function CourierDashboard() {
       <div className="glass-card mb-8 p-6" style={{ borderRadius: '1.25rem' }}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-[var(--yale)]">Estado e Horários</h2>
-          <label className="flex items-center gap-2 cursor-pointer">
+          <label className="flex items-center gap-3 cursor-pointer">
             <span className={`text-sm font-medium ${courier.isAvailable ? 'text-[var(--success)]' : 'text-muted'}`}>
               {courier.isAvailable ? "Disponível para recolhas" : "Indisponível"}
             </span>
-            <div className={`relative inline-block w-12 ml-2 align-middle select-none transition duration-200 ease-in`}>
-              <input type="checkbox" className="absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" style={{ top: 2, right: courier.isAvailable ? 2 : 26, borderColor: courier.isAvailable ? 'var(--success)' : 'var(--muted)', zIndex: 10, transition: 'right 0.2s ease-in' }} checked={courier.isAvailable || false} onChange={handleToggleAvailable}/>
-              <div className={`block overflow-hidden h-7 rounded-full cursor-pointer ${courier.isAvailable ? 'bg-[var(--success)] opacity-70' : 'bg-gray-300 opacity-60'}`}></div>
+            <div className="relative inline-flex items-center">
+              <input type="checkbox" className="sr-only peer" checked={courier.isAvailable || false} onChange={handleToggleAvailable} />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--success)]"></div>
             </div>
           </label>
         </div>
@@ -179,7 +179,7 @@ export default function CourierDashboard() {
                     <button 
                       onClick={() => handleAction(order.id, "recolhida")}
                       className="btn btn-primary" 
-                      style={{ flex: 1, minWidth: 120, padding: '0.75rem' }}
+                      style={{ flex: 1, minWidth: 120 }}
                     >
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
                         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -194,7 +194,7 @@ export default function CourierDashboard() {
                       <button 
                         onClick={() => handleAction(order.id, "entregue")}
                         className="btn btn-primary" 
-                        style={{ flex: 1, minWidth: 120, padding: '0.75rem', background: 'var(--success)', borderColor: 'var(--success)' }}
+                        style={{ flex: 1, minWidth: 120, background: 'var(--success)', borderColor: 'var(--success)' }}
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
                           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -205,7 +205,7 @@ export default function CourierDashboard() {
                       <button 
                         onClick={() => handleAction(order.id, "falhou")}
                         className="btn btn-danger" 
-                        style={{ flex: 1, minWidth: 120, padding: '0.75rem' }}
+                        style={{ flex: 1, minWidth: 120 }}
                       >
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
                           <circle cx="12" cy="12" r="10"></circle>

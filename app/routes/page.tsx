@@ -267,7 +267,8 @@ export default function RoutesPage() {
               </p>
             </div>
           ) : (
-            <div className="routes-groups">
+            <>
+            <div className="routes-groups print:hidden">
               {groups.map((group, gi) => (
                 <div key={group.key} className="route-group glass-card">
                   <div className="route-group-header">
@@ -348,6 +349,47 @@ export default function RoutesPage() {
                 </div>
               ))}
             </div>
+
+            {/* Relatório de Impressão (Apenas visível em PDF) */}
+            <div className="hidden print:block mt-8 w-full">
+              <h2 className="text-2xl font-bold mb-4 border-b-2 border-black pb-2">Relatório de Rotas</h2>
+              <div className="mb-4 flex gap-8 text-sm">
+                <p><strong>Total de Encomendas:</strong> {filtered.length}</p>
+                <p><strong>Total de Rotas:</strong> {groups.length}</p>
+                <p><strong>Data:</strong> {new Date().toLocaleDateString("pt-PT")}</p>
+              </div>
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-gray-400 bg-gray-100">
+                    <th className="py-2 px-2 font-semibold">Seq</th>
+                    <th className="py-2 px-2 font-semibold">Zona</th>
+                    <th className="py-2 px-2 font-semibold">Código Postal</th>
+                    <th className="py-2 px-2 font-semibold">ID</th>
+                    <th className="py-2 px-2 font-semibold">Cliente</th>
+                    <th className="py-2 px-2 font-semibold">Morada</th>
+                    <th className="py-2 px-2 font-semibold">Data Prevista</th>
+                    <th className="py-2 px-2 font-semibold">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groups.map((g) => {
+                    return g.orders.map((o, index) => (
+                      <tr key={o.id} className="border-b border-gray-200">
+                        <td className="py-1 px-2">{index + 1}</td>
+                        <td className="py-1 px-2 font-medium">{g.zone}</td>
+                        <td className="py-1 px-2">{g.postalCode}</td>
+                        <td className="py-1 px-2 font-mono">{o.id.substring(0, 8)}</td>
+                        <td className="py-1 px-2">{o.customerName}</td>
+                        <td className="py-1 px-2">{o.address?.street || "—"}, {o.address?.city || "—"}</td>
+                        <td className="py-1 px-2">{new Date(o.expectedDate).toLocaleDateString("pt-PT")}</td>
+                        <td className="py-1 px-2">{o.status}</td>
+                      </tr>
+                    ));
+                  })}
+                </tbody>
+              </table>
+            </div>
+            </>
           )}
         </>
       )}
