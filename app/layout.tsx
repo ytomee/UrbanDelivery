@@ -47,6 +47,18 @@ export default function RootLayout({
             </Link>
             <nav className="flex items-center gap-1">
               <Link
+                href="/dashboard"
+                className="btn-ghost"
+                style={{ fontSize: '0.8125rem' }}
+              >
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 4 }}>
+                  <rect x="2" y="8" width="3" height="5" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                  <rect x="6" y="4" width="3" height="9" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                  <rect x="10" y="2" width="3" height="11" rx="1" stroke="currentColor" strokeWidth="1.3"/>
+                </svg>
+                Dashboard
+              </Link>
+              <Link
                 href="/customers"
                 className="btn-ghost"
                 style={{ fontSize: '0.8125rem' }}
