@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Order } from "../types/order";
+import { Order, OrderStatus } from "../types/order";
 import { getOrders } from "../lib/orders";
 
 type Period = "day" | "week" | "month";
@@ -127,6 +127,66 @@ export default function DashboardPage() {
     if (rate > 90) return "rgba(34, 197, 94, 0.1)"; 
     if (rate >= 70) return "rgba(234, 179, 8, 0.1)"; 
     return "rgba(239, 68, 68, 0.1)"; 
+  };
+
+  const statusDistribution = useMemo(() => {
+    const counts: Record<OrderStatus, number> = {
+      "pendente": 0,
+      "em distribuição": 0,
+      "entregue": 0,
+      "falhou": 0,
+      "cancelada": 0
+    };
+    orders.forEach(o => {
+      if (counts[o.status] !== undefined) {
+        counts[o.status]++;
+      }
+    });
+    
+    return [
+      { label: "Pendente", value: counts["pendente"], color: "var(--foreground-secondary)" },
+      { label: "Em Distrib.", value: counts["em distribuição"], color: "var(--yale-light, #3b82f6)" },
+      { label: "Entregue", value: counts["entregue"], color: "#22c55e" },
+      { label: "Falhou", value: counts["falhou"], color: "#f97316" },
+      { label: "Cancelada", value: counts["cancelada"], color: "#ef4444" },
+    ];
+  }, [orders]);
+
+  const renderBarChart = () => {
+    const maxVal = Math.max(...statusDistribution.map(d => d.value), 1);
+    const chartHeight = 160; 
+    
+    return (
+      <div className="w-full flex items-end justify-around h-48 mt-4 pt-4 border-t border-[var(--border)]">
+        {statusDistribution.map((d, i) => {
+          const barHeight = (d.value / maxVal) * chartHeight;
+          return (
+            <div key={i} className="flex flex-col items-center group w-full px-2">
+              <div className="relative flex flex-col justify-end w-full max-w-[60px] h-40 mb-3">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--foreground)] text-[var(--background)] text-xs font-bold py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap z-10 pointer-events-none drop-shadow-md">
+                  {d.value}
+                </div>
+                
+                <div 
+                  className="w-full rounded-t-lg transition-all duration-300 ease-out group-hover:brightness-110"
+                  style={{ 
+                    height: `${Math.max(barHeight, 4)}px`, 
+                    backgroundColor: d.color,
+                    opacity: 0.9,
+                    transformOrigin: 'bottom',
+                    animation: `scaleUp 0.8s ease-out forwards ${i * 0.1}s`,
+                    transform: 'scaleY(0)'
+                  }}
+                />
+              </div>
+              <span className="text-xs md:text-sm font-medium text-muted truncate max-w-full" title={d.label}>
+                {d.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   // Max value for scaling the SVG
@@ -321,11 +381,24 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Estado das Encomendas - Linha Inteira */}
+      <div className="glass-card p-6 flex flex-col" style={{ borderRadius: '1.5rem' }}>
+        <div className="mb-2">
+          <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Distribuição por Estado</h2>
+          <p className="text-sm text-muted">Visão geral do estado de todas as encomendas no sistema (global).</p>
+        </div>
+        {renderBarChart()}
+      </div>
       
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes draw {
           from { stroke-dashoffset: 300; }
           to { stroke-dashoffset: 0; }
+        }
+        @keyframes scaleUp {
+          from { transform: scaleY(0); }
+          to { transform: scaleY(1); }
         }
       `}} />
     </div>
