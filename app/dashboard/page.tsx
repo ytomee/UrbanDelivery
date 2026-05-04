@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { Order, OrderStatus } from "../types/order";
+import { Courier } from "../types/courier";
 import { getOrders } from "../lib/orders";
+import { getCouriers } from "../lib/couriers";
 
 type Period = "day" | "week" | "month";
 
@@ -13,10 +15,12 @@ interface ChartDataPoint {
 
 export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [couriers, setCouriers] = useState<Courier[]>([]);
   const [period, setPeriod] = useState<Period>("day");
   
   useEffect(() => {
     setOrders(getOrders());
+    setCouriers(getCouriers());
   }, []);
 
   const chartData = useMemo(() => {
@@ -182,6 +186,92 @@ export default function DashboardPage() {
               <span className="text-xs md:text-sm font-medium text-muted truncate max-w-full" title={d.label}>
                 {d.label}
               </span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const workloadData = useMemo(() => {
+    const now = new Date();
+    const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    const activeOrders = orders.filter(o => {
+      const d = new Date(o.createdAt);
+      if (period === "day") {
+        const diffDays = Math.floor((startOfDay(now).getTime() - startOfDay(d).getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 && diffDays < 7;
+      } else if (period === "week") {
+        const diffDays = Math.floor((startOfDay(now).getTime() - startOfDay(d).getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 && diffDays < 28;
+      } else if (period === "month") {
+        const diffMonths = (now.getFullYear() - d.getFullYear()) * 12 + now.getMonth() - d.getMonth();
+        return diffMonths >= 0 && diffMonths < 6;
+      }
+      return false;
+    });
+
+    const counts: Record<string, number> = {};
+    activeOrders.forEach(o => {
+      if (o.courierId) {
+        counts[o.courierId] = (counts[o.courierId] || 0) + 1;
+      }
+    });
+
+    const totalAssigned = Object.values(counts).reduce((a, b) => a + b, 0);
+    const numCouriers = couriers.length;
+    const avg = numCouriers > 0 ? totalAssigned / numCouriers : 0;
+    const overloadThreshold = Math.max(avg * 1.3, avg + 2); // 30% above average, or at least 2 more
+
+    return couriers.map(c => {
+      const count = counts[c.id] || 0;
+      const isOverloaded = count > overloadThreshold && count > 0;
+      return {
+        id: c.id,
+        label: c.name.split(" ")[0],
+        fullName: c.name,
+        value: count,
+        isOverloaded,
+        color: isOverloaded ? "#ef4444" : "var(--yale-light, #3b82f6)"
+      };
+    }).sort((a, b) => b.value - a.value); 
+  }, [orders, couriers, period]);
+
+  const renderWorkloadChart = () => {
+    if (workloadData.length === 0) return <div className="p-4 text-center text-sm text-muted mt-4">Nenhum estafeta registado.</div>;
+    const maxVal = Math.max(...workloadData.map(d => d.value), 1);
+    const chartHeight = 160; 
+    
+    return (
+      <div className="w-full flex items-end justify-around h-48 mt-4 pt-4 border-t border-[var(--border)] gap-2 overflow-x-auto">
+        {workloadData.map((d, i) => {
+          const barHeight = (d.value / maxVal) * chartHeight;
+          return (
+            <div key={d.id} className="flex flex-col items-center group min-w-[50px] px-1">
+              <div className="relative flex flex-col justify-end w-full max-w-[50px] h-40 mb-3">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[var(--foreground)] text-[var(--background)] text-xs font-bold py-1 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap z-10 pointer-events-none drop-shadow-md">
+                  {d.value} enc.
+                </div>
+                
+                <div 
+                  className="w-full rounded-t-lg transition-all duration-300 ease-out group-hover:brightness-110"
+                  style={{ 
+                    height: `${Math.max(barHeight, 4)}px`, 
+                    backgroundColor: d.color,
+                    opacity: 0.9,
+                    transformOrigin: 'bottom',
+                    animation: `scaleUp 0.8s ease-out forwards ${i * 0.1}s`,
+                    transform: 'scaleY(0)'
+                  }}
+                />
+              </div>
+              <span className={`text-xs md:text-sm font-medium truncate max-w-full ${d.isOverloaded ? 'text-[#ef4444] font-bold' : 'text-muted'}`} title={d.fullName}>
+                {d.label}
+              </span>
+              {d.isOverloaded && (
+                <span className="text-[9px] text-white bg-[#ef4444] px-1 rounded uppercase mt-1">Alto</span>
+              )}
             </div>
           );
         })}
@@ -382,13 +472,30 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Estado das Encomendas - Linha Inteira */}
-      <div className="glass-card p-6 flex flex-col" style={{ borderRadius: '1.5rem' }}>
-        <div className="mb-2">
-          <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Distribuição por Estado</h2>
-          <p className="text-sm text-muted">Visão geral do estado de todas as encomendas no sistema (global).</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Estado das Encomendas */}
+        <div className="glass-card p-6 flex flex-col" style={{ borderRadius: '1.5rem' }}>
+          <div className="mb-2">
+            <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Distribuição por Estado</h2>
+            <p className="text-sm text-muted">Visão global de encomendas.</p>
+          </div>
+          {renderBarChart()}
         </div>
-        {renderBarChart()}
+
+        {/* Carga de Trabalho */}
+        <div className="glass-card p-6 flex flex-col" style={{ borderRadius: '1.5rem' }}>
+          <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Carga de Trabalho</h2>
+              <p className="text-sm text-muted">Atribuições no período selecionado.</p>
+            </div>
+            <span className="flex items-center gap-2 text-xs font-medium bg-red-100 text-red-600 px-2 py-1 rounded w-fit">
+              <span className="w-2 h-2 rounded-full bg-[#ef4444]"></span>
+              Sobrecarregado
+            </span>
+          </div>
+          {renderWorkloadChart()}
+        </div>
       </div>
       
       <style dangerouslySetInnerHTML={{__html: `
