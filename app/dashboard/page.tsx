@@ -88,6 +88,47 @@ export default function DashboardPage() {
     return chartData.reduce((acc, curr) => acc + curr.value, 0);
   }, [chartData]);
 
+  const onTimeMetrics = useMemo(() => {
+    const deliveredOrders = orders.filter((o) => o.status === "entregue");
+    if (deliveredOrders.length === 0) return { rate: 0, total: 0, onTime: 0, hasData: false };
+
+    let onTimeCount = 0;
+    deliveredOrders.forEach((o) => {
+      const history = o.statusHistory?.filter(h => h.status === "entregue") || [];
+      const lastEntry = history[history.length - 1];
+      const deliveredAt = lastEntry ? new Date(lastEntry.changedAt) : new Date(o.createdAt);
+      const dDate = new Date(deliveredAt.getFullYear(), deliveredAt.getMonth(), deliveredAt.getDate());
+      
+      const eDateOriginal = new Date(o.expectedDate);
+      const eDate = isNaN(eDateOriginal.getTime()) ? dDate : new Date(eDateOriginal.getFullYear(), eDateOriginal.getMonth(), eDateOriginal.getDate());
+      
+      if (dDate <= eDate) {
+        onTimeCount++;
+      }
+    });
+
+    return {
+      rate: Math.round((onTimeCount / deliveredOrders.length) * 100),
+      total: deliveredOrders.length,
+      onTime: onTimeCount,
+      hasData: true
+    };
+  }, [orders]);
+
+  const getRateColor = (rate: number) => {
+    if (!onTimeMetrics.hasData) return "var(--muted)";
+    if (rate > 90) return "#22c55e"; // verde
+    if (rate >= 70) return "#eab308"; // amarelo
+    return "#ef4444"; // vermelho
+  };
+  
+  const getRateBg = (rate: number) => {
+    if (!onTimeMetrics.hasData) return "rgba(0,0,0,0.05)";
+    if (rate > 90) return "rgba(34, 197, 94, 0.1)"; 
+    if (rate >= 70) return "rgba(234, 179, 8, 0.1)"; 
+    return "rgba(239, 68, 68, 0.1)"; 
+  };
+
   // Max value for scaling the SVG
   const maxVal = Math.max(...chartData.map(d => d.value), 1); // at least 1 to avoid div by zero
 
@@ -177,63 +218,106 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="animate-fade-in max-w-4xl mx-auto space-y-8">
+    <div className="animate-fade-in max-w-5xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[var(--yale)]">Painel de Gestor</h1>
-          <p className="text-muted mt-1">Acompanhe o volume operacional e as entregas da plataforma.</p>
+          <p className="text-muted mt-1">Acompanhe o volume operacional e a qualidade de serviço da plataforma.</p>
         </div>
       </div>
 
-      <div className="glass-card p-6" style={{ borderRadius: '1.5rem' }}>
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
-          <div>
-            <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Volume de Entregas</h2>
-            <p className="text-sm text-muted">Total de encomendas registadas no período selecionado.</p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Gráfico de Volume - Coluna Dupla */}
+        <div className="lg:col-span-2 glass-card p-6 flex flex-col" style={{ borderRadius: '1.5rem' }}>
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Volume de Entregas</h2>
+              <p className="text-sm text-muted">Total de encomendas registadas no período selecionado.</p>
+            </div>
+            
+            <div className="flex bg-[var(--background)] rounded-full p-1 border border-[var(--border)] shadow-sm">
+              {(["day", "week", "month"] as const).map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    period === p 
+                      ? 'bg-[var(--yale)] text-[#FAF0CA] shadow-md' 
+                      : 'text-muted hover:text-[var(--foreground)]'
+                  }`}
+                >
+                  {p === "day" ? "Últimos 7 Dias" : p === "week" ? "Últimas 4 Semanas" : "Últimos 6 Meses"}
+                </button>
+              ))}
+            </div>
           </div>
-          
-          <div className="flex bg-[var(--background)] rounded-full p-1 border border-[var(--border)] shadow-sm">
-            {(["day", "week", "month"] as const).map(p => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                  period === p 
-                    ? 'bg-[var(--yale)] text-[#FAF0CA] shadow-md' 
-                    : 'text-muted hover:text-[var(--foreground)]'
-                }`}
-              >
-                {p === "day" ? "Últimos 7 Dias" : p === "week" ? "Últimas 4 Semanas" : "Últimos 6 Meses"}
-              </button>
-            ))}
+
+          <div className="flex flex-col md:flex-row items-center gap-8 flex-1">
+            {/* Cartão Numérico */}
+            <div className="flex-shrink-0 w-full md:w-48 aspect-square rounded-2xl bg-gradient-to-br from-[#FAF0CA] to-[#F2E5B5] shadow-inner flex flex-col items-center justify-center border border-[rgba(255,255,255,0.4)]">
+              <span className="text-sm font-semibold text-[var(--yale)] uppercase tracking-wider opacity-80 mb-2">Total</span>
+              <span className="text-6xl font-bold text-[var(--yale)] tracking-tighter" style={{ textShadow: '0 2px 10px rgba(13, 59, 102, 0.1)' }}>
+                {totalVolume}
+              </span>
+              <span className="text-xs text-[var(--yale)] font-medium mt-2 opacity-70">
+                {period === "day" ? "entregas nesta semana" : period === "week" ? "entregas no mês" : "entregas no semestre"}
+              </span>
+            </div>
+
+            {/* Linha de Tendência */}
+            <div className="flex-1 w-full flex flex-col justify-end h-full pt-4">
+              <div className="relative w-full">
+                {renderLine()}
+                {/* X-axis labels */}
+                <div className="flex justify-between mt-4 text-xs font-medium text-muted px-1">
+                  {chartData.map((d, i) => (
+                    <span key={i} className={i === 0 ? "text-left" : i === chartData.length - 1 ? "text-right" : "text-center"}>
+                      {d.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row items-center gap-8">
-          {/* Cartão Numérico */}
-          <div className="flex-shrink-0 w-full md:w-48 aspect-square rounded-2xl bg-gradient-to-br from-[#FAF0CA] to-[#F2E5B5] shadow-inner flex flex-col items-center justify-center border border-[rgba(255,255,255,0.4)]">
-            <span className="text-sm font-semibold text-[var(--yale)] uppercase tracking-wider opacity-80 mb-2">Total</span>
-            <span className="text-6xl font-bold text-[var(--yale)] tracking-tighter" style={{ textShadow: '0 2px 10px rgba(13, 59, 102, 0.1)' }}>
-              {totalVolume}
-            </span>
-            <span className="text-xs text-[var(--yale)] font-medium mt-2 opacity-70">
-              {period === "day" ? "entregas nesta semana" : period === "week" ? "entregas no mês" : "entregas no semestre"}
-            </span>
+        {/* Taxa no Prazo - Coluna Simples */}
+        <div className="glass-card p-6 flex flex-col items-center text-center relative overflow-hidden" style={{ borderRadius: '1.5rem' }}>
+          <div className="w-full text-left mb-6">
+            <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Taxa no Prazo</h2>
+            <p className="text-sm text-muted">Percentagem de encomendas entregues na data prevista.</p>
           </div>
 
-          {/* Linha de Tendência */}
-          <div className="flex-1 w-full flex flex-col h-full pt-4">
-            <div className="relative w-full">
-              {renderLine()}
-              {/* X-axis labels */}
-              <div className="flex justify-between mt-4 text-xs font-medium text-muted px-1">
-                {chartData.map((d, i) => (
-                  <span key={i} className={i === 0 ? "text-left" : i === chartData.length - 1 ? "text-right" : "text-center"}>
-                    {d.label}
-                  </span>
-                ))}
-              </div>
+          <div className="relative flex items-center justify-center flex-1 w-full my-4">
+            <svg viewBox="0 0 100 100" className="w-48 h-48 drop-shadow-md">
+              <circle
+                cx="50" cy="50" r="40"
+                fill="none"
+                stroke={getRateBg(onTimeMetrics.rate)}
+                strokeWidth="12"
+              />
+              <circle
+                cx="50" cy="50" r="40"
+                fill="none"
+                stroke={getRateColor(onTimeMetrics.rate)}
+                strokeWidth="12"
+                strokeLinecap="round"
+                strokeDasharray="251.2"
+                strokeDashoffset={onTimeMetrics.hasData ? 251.2 - (251.2 * onTimeMetrics.rate) / 100 : 251.2}
+                className="transition-all duration-1000 ease-out"
+                transform="rotate(-90 50 50)"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-4xl font-bold tracking-tighter" style={{ color: getRateColor(onTimeMetrics.rate) }}>
+                {onTimeMetrics.hasData ? `${onTimeMetrics.rate}%` : "-"}
+              </span>
             </div>
+          </div>
+
+          <div className="w-full flex justify-between items-center text-sm mt-auto pt-4 border-t border-[var(--border)]">
+            <span className="text-muted">No prazo</span>
+            <span className="font-semibold">{onTimeMetrics.onTime} de {onTimeMetrics.total}</span>
           </div>
         </div>
       </div>
