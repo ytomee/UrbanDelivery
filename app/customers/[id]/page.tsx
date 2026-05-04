@@ -404,13 +404,13 @@ export default function CustomerDetailPage({
       <div className="flex items-center justify-between mb-5 mt-10">
         <div>
           <h2 className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
-            Notificações
+            Histórico de Comunicações
           </h2>
           <div className="accent-line" style={{ marginTop: 6 }} />
         </div>
         {notifications.length > 0 && (
           <span className="text-sm" style={{ color: "var(--muted)" }}>
-            {notifications.length} notificaç{notifications.length === 1 ? "ão" : "ões"} enviada{notifications.length === 1 ? "" : "s"}
+            {notifications.length} registo{notifications.length === 1 ? "" : "s"}
           </span>
         )}
       </div>
@@ -424,9 +424,9 @@ export default function CustomerDetailPage({
             </svg>
           </div>
           <p className="text-sm font-medium" style={{ color: "var(--foreground-secondary)" }}>
-            Sem notificações
+            Sem comunicações
           </p>
-          <p className="text-xs mt-1">As notificações aparecem aqui quando o estado de uma encomenda mudar</p>
+          <p className="text-xs mt-1">O histórico aparecerá aqui quando o estado de uma encomenda mudar ou forem enviados avisos.</p>
         </div>
       ) : (
         <div className="glass-card overflow-hidden" style={{ marginBottom: 32 }}>

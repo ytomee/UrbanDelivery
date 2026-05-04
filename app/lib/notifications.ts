@@ -36,10 +36,12 @@ function addNotification(data: Omit<Notification, "id" | "sentAt">): Notificatio
 }
 
 function sendToChannels(base: Omit<Notification, "id" | "sentAt" | "channel" | "recipient">, customer: Customer) {
-  const channels: Array<{ channel: NotificationChannel; recipient: string }> = [
-    { channel: "email", recipient: customer.email },
-    { channel: "sms", recipient: customer.phone },
-  ];
+  const prefs = customer.communicationPreferences || { email: true, sms: true };
+  const channels: Array<{ channel: NotificationChannel; recipient: string }> = [];
+  
+  if (prefs.email !== false) channels.push({ channel: "email", recipient: customer.email });
+  if (prefs.sms !== false) channels.push({ channel: "sms", recipient: customer.phone });
+  
   channels.forEach(({ channel, recipient }) => addNotification({ ...base, channel, recipient }));
 }
 
