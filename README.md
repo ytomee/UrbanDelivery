@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UrbanDelivery 🚚
 
-## Getting Started
+UrbanDelivery é uma plataforma moderna e completa de gestão de logística e "last-mile delivery", desenvolvida para otimizar as operações diárias de empresas de estafetagem. A aplicação permite gerir encomendas, frota, equipas e rotas através de um painel de controlo profissional e altamente responsivo.
 
-First, run the development server:
+## ✨ Principais Funcionalidades
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Painel de Gestor (Dashboard):** Visualização em tempo real de KPIs críticos como volume de entregas, taxa de sucesso no prazo (On-Time Rate) e distribuição gráfica do estado das encomendas (via Recharts).
+- **Gestão de Encomendas:** Criação e monitorização do ciclo de vida das encomendas. Inclui ferramentas ágeis para cancelamentos, atualizações de estado e registo de incidentes (avisos de atraso e reagendamentos).
+- **Quadro de Despacho (Dispatch Board):** Interface interativa baseada em arrastar e largar (Drag & Drop) para atribuição e organização rápida de entregas pelas diferentes equipas/estafetas de serviço.
+- **Planeamento de Rotas:** Agrupamento inteligente de encomendas por Código Postal e Zona. Possibilidade de geração de guias de rota limpas, prontas a imprimir (exportação para PDF) e listagens de dados crus em CSV para integração com Excel.
+- **Gestão de Entidades:** Interfaces dedicadas para administrar:
+  - **Estafetas:** Gestão da equipa, horários de turno e estado de disponibilidade.
+  - **Veículos:** Controlo de frota, matrículas e limites de capacidade.
+  - **Clientes:** Registo de clientes regulares e histórico de interações.
+- **Design UI/UX Profissional:** Interface moderna (*glassmorphism*, sombras suaves, paleta de cores consistente e animações de estado) focada em produtividade operacional.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tecnologias Utilizadas
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework:** [Next.js](https://nextjs.org/) (App Router)
+- **Biblioteca UI:** [React](https://reactjs.org/)
+- **Estilização:** [Tailwind CSS](https://tailwindcss.com/) com CSS puro modular (efeitos e animações customizadas).
+- **Gráficos:** [Recharts](https://recharts.org/)
+- **Base de Dados / Estado:** A aplicação utiliza atualmente a API `localStorage` do browser combinada com um motor de *seeding* (geração de dados automáticos) para simular um ambiente persistente e real de base de dados.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Como Iniciar o Projeto
 
-## Learn More
+### Pré-requisitos
+- [Node.js](https://nodejs.org/) (versão 18.x ou superior recomendada)
+- `npm`, `yarn` ou `pnpm`
 
-To learn more about Next.js, take a look at the following resources:
+### Instalação
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Clone o repositório ou faça download dos ficheiros.
+2. Na raiz do projeto, instale as dependências:
+   ```bash
+   npm install
+   ```
+3. Inicie o servidor de desenvolvimento:
+   ```bash
+   npm run dev
+   ```
+4. Abra o seu navegador web no endereço [http://localhost:3000](http://localhost:3000).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+*Nota:* No primeiro acesso, a aplicação irá automaticamente gerar ("seed") dados fictícios (150 encomendas, frota, estafetas e clientes) para que possa interagir e explorar imediatamente todas as funcionalidades da plataforma.
 
-## Deploy on Vercel
+## 📦 Estrutura do Projeto
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `/app` - Rotas, layouts e páginas da aplicação Next.js.
+  - `/dashboard` - Painel analítico de gestão.
+  - `/orders` - Gestão central de encomendas.
+  - `/dispatch` - Quadro operacional de distribuição.
+  - `/routes` - Motor de rotas e exportações.
+  - `/components` - Componentes partilhados (modais, tabelas, seeding).
+  - `/lib` - Lógica de negócio e acesso a dados (Models e Services).
+  - `/types` - Tipagens e interfaces de TypeScript.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 Desenvolvido para Excelência Operacional
+Este projeto foi refinado até ao detalhe, garantindo consistência no alinhamento de componentes, estabilidade em fluxos e otimização para impressões, estando "production-ready" e apto para ambiente de demonstração profissional.
