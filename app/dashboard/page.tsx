@@ -3,8 +3,10 @@
 import { useEffect, useState, useMemo } from "react";
 import { Order, OrderStatus } from "../types/order";
 import { Courier } from "../types/courier";
+import { Address } from "../types/address";
 import { getOrders } from "../lib/orders";
 import { getCouriers } from "../lib/couriers";
+import { getAllAddresses } from "../lib/addresses";
 
 type Period = "day" | "week" | "month";
 
@@ -16,11 +18,13 @@ interface ChartDataPoint {
 export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [couriers, setCouriers] = useState<Courier[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [period, setPeriod] = useState<Period>("day");
   
   useEffect(() => {
     setOrders(getOrders());
     setCouriers(getCouriers());
+    setAddresses(getAllAddresses());
   }, []);
 
   const chartData = useMemo(() => {
@@ -279,6 +283,109 @@ export default function DashboardPage() {
     );
   };
 
+  const deliveryTimeData = useMemo(() => {
+    const addressMap = new Map(addresses.map(a => [a.id, a]));
+    
+    const now = new Date();
+    const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    const deliveredOrders = orders.filter(o => {
+      if (o.status !== "entregue") return false;
+      const d = new Date(o.createdAt);
+      if (period === "day") {
+        const diffDays = Math.floor((startOfDay(now).getTime() - startOfDay(d).getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 && diffDays < 7;
+      } else if (period === "week") {
+        const diffDays = Math.floor((startOfDay(now).getTime() - startOfDay(d).getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays >= 0 && diffDays < 28;
+      } else if (period === "month") {
+        const diffMonths = (now.getFullYear() - d.getFullYear()) * 12 + now.getMonth() - d.getMonth();
+        return diffMonths >= 0 && diffMonths < 6;
+      }
+      return false;
+    });
+
+    const zoneStats: Record<string, { totalMs: number; count: number }> = {};
+    
+    deliveredOrders.forEach(o => {
+      const history = o.statusHistory || [];
+      const entregueEntry = history.find(h => h.status === "entregue");
+      if (!entregueEntry) return;
+
+      const startEntry = history.find(h => h.status === "em distribuição");
+      const startTime = startEntry ? new Date(startEntry.changedAt).getTime() : new Date(o.createdAt).getTime();
+      const endTime = new Date(entregueEntry.changedAt).getTime();
+      
+      const durationMs = endTime - startTime;
+      if (durationMs < 0) return;
+
+      const address = addressMap.get(o.addressId);
+      const zone = address?.zone || "Desconhecida";
+
+      if (!zoneStats[zone]) {
+        zoneStats[zone] = { totalMs: 0, count: 0 };
+      }
+      zoneStats[zone].totalMs += durationMs;
+      zoneStats[zone].count += 1;
+    });
+
+    const formatDuration = (ms: number) => {
+      const totalMins = Math.floor(ms / 60000);
+      if (totalMins < 60) return `${totalMins} min`;
+      const hours = Math.floor(totalMins / 60);
+      const mins = totalMins % 60;
+      return `${hours}h ${mins}m`;
+    };
+
+    return Object.entries(zoneStats).map(([zone, stats]) => {
+      const avgMs = stats.totalMs / stats.count;
+      return {
+        zone,
+        avgMs,
+        avgFormatted: formatDuration(avgMs),
+        count: stats.count
+      };
+    }).sort((a, b) => b.avgMs - a.avgMs);
+  }, [orders, addresses, period]);
+
+  const renderDeliveryTimes = () => {
+    if (deliveryTimeData.length === 0) {
+      return <div className="p-4 text-center text-sm text-muted mt-4">Sem dados de entrega suficientes para o período.</div>;
+    }
+    
+    const maxMs = Math.max(...deliveryTimeData.map(d => d.avgMs));
+    
+    return (
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+        {deliveryTimeData.map((d, i) => {
+          const widthPct = Math.max((d.avgMs / maxMs) * 100, 5); 
+          const isBottleneck = i === 0 && d.avgMs > 1000 * 60 * 60; // Highlights the worst one if it takes > 1 hour
+          
+          return (
+            <div key={d.zone} className="flex flex-col gap-1.5">
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium text-[var(--foreground)] flex items-center gap-2">
+                  {d.zone}
+                  {isBottleneck && <span className="text-[9px] text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Estrangulamento</span>}
+                </span>
+                <span className="text-muted font-mono">{d.avgFormatted} <span className="text-[10px] opacity-70">({d.count} enc.)</span></span>
+              </div>
+              <div className="w-full bg-[var(--border)] h-2 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-1000 ease-out`}
+                  style={{ 
+                    width: `${widthPct}%`, 
+                    backgroundColor: isBottleneck ? '#f97316' : 'var(--yale)',
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   // Max value for scaling the SVG
   const maxVal = Math.max(...chartData.map(d => d.value), 1); // at least 1 to avoid div by zero
 
@@ -496,6 +603,21 @@ export default function DashboardPage() {
           </div>
           {renderWorkloadChart()}
         </div>
+      </div>
+
+      {/* Tempo Médio de Entrega */}
+      <div className="glass-card p-6 flex flex-col mt-6" style={{ borderRadius: '1.5rem' }}>
+        <div className="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-[var(--foreground)] mb-1">Tempo Médio de Entrega por Zona</h2>
+            <p className="text-sm text-muted">Acompanhe a duração média desde a expedição até ao cliente e identifique estrangulamentos geográficos.</p>
+          </div>
+          <span className="flex items-center gap-2 text-xs font-medium bg-orange-100 text-orange-600 px-3 py-1.5 rounded-full w-fit whitespace-nowrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            Horas Operacionais
+          </span>
+        </div>
+        {renderDeliveryTimes()}
       </div>
       
       <style dangerouslySetInnerHTML={{__html: `
